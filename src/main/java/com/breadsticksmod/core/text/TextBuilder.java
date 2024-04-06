@@ -206,6 +206,8 @@ public interface TextBuilder {
 
    TextBuilder line();
 
+   TextBuilder lineClean();
+
    TextBuilder space();
 
    StyledText build();

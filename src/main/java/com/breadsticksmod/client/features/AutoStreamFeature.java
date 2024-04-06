@@ -23,6 +23,8 @@ public class AutoStreamFeature extends Feature {
    @Instance
    private static AutoStreamFeature THIS;
 
+   private static boolean wasEnabled = false;
+
    private static Date lastCommand = new Date(0);
 
    @Value("Use Keybind")
@@ -30,17 +32,22 @@ public class AutoStreamFeature extends Feature {
    private boolean keybind = true;
 
    private void tryToggle() {
-      if (BossbarUtil.contains("Streamer mode enabled") != isEnabled() && mc().getConnection() != null && Models.WorldState.getCurrentState() == WorldState.WORLD && !inHuntedMode()) {
+      if (((isEnabled() && !BossbarUtil.contains("Streamer mode enabled"))
+              || (wasEnabled && !isEnabled() && BossbarUtil.contains("Streamer mode enabled")))
+              && mc().getConnection() != null
+              && Models.WorldState.getCurrentState() == WorldState.WORLD
+              && !inHuntedMode()) {
          mc().getConnection().sendCommand("stream");
          lastCommand = new Date();
       }
+      wasEnabled = isEnabled();
    }
 
    private static boolean lastInput = false;
 
    @SubscribeEvent
    private static void onTick(TickEvent event) {
-      if (Duration.since(lastCommand).greaterThanOrEqual(400, ChronoUnit.MILLISECONDS)) {
+      if ((THIS.isEnabled() || wasEnabled) && Duration.since(lastCommand).greaterThanOrEqual(400, ChronoUnit.MILLISECONDS)) {
          THIS.tryToggle();
       }
 
