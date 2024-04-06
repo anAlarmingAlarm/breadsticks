@@ -1,0 +1,12 @@
+{
+  "war.horn": {
+    "sounds": [
+      "breadsticks:war_horn"
+    ]
+  },
+  "cheep.cheep": {
+    "sounds": [
+      "breadsticks:cheep_cheep"
+    ]
+  }
+}

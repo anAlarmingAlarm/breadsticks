@@ -1,0 +1,13 @@
+package com.breadsticksmod.core.config;
+
+import com.terraformersmc.modmenu.api.ConfigScreenFactory;
+import com.terraformersmc.modmenu.api.ModMenuApi;
+
+import static com.breadsticksmod.client.BreadsticksMain.CONFIG;
+
+public class ConfigScreen implements ModMenuApi {
+   @Override
+   public ConfigScreenFactory<?> getModConfigScreenFactory() {
+      return parent -> CONFIG.build(parent).build();
+   }
+}

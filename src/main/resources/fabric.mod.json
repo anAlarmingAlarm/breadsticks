@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "breadsticks",
+  "version": "${version}",
+  "name": "breadsticks",
+  "description": "\n\n\n\n\n\n\n\n\n\n\n\n\nbreadsticks",
+  "icon": "assets/breadsticks/breadsticks.jpg",
+  "authors": [
+    "anAlarmingAlarm"
+  ],
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.breadsticksmod.client.BreadsticksMain"
+    ],
+    "modmenu": [
+      "com.breadsticksmod.core.config.ConfigScreen"
+    ],
+    "breadsticks": [
+      "com.breadsticksmod.client.BreadsticksMain"
+    ]
+  },
+  "mixins": [
+    "breadsticks.mixins.json"
+  ],
+  "accessWidener" : "breadsticks.accesswidener",
+  "depends": {
+    "wynntils": ">=${artemis_version}",
+    "cloth-config": ">=${cloth_config_version}",
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
