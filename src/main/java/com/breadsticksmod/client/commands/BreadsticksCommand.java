@@ -303,7 +303,7 @@ public class BreadsticksCommand {
    private static void onUpdate(CommandContext<?> context) {
       ChatUtil.message("Attempting update...", YELLOW);
 
-      AutoUpdateFeature.update().thenAccept(result -> ChatUtil.message(result.getMessage()));
+      AutoUpdateFeature.update(false).thenAccept(result -> ChatUtil.message(result.getMessage()));
    }
 
    private static void getPlayer(String string, Consumer<Player> consumer) {
