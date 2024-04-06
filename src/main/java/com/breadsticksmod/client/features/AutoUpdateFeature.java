@@ -22,7 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-@Default(State.ENABLED)
+@Default(State.DISABLED)
 @Feature.Definition(name = "Auto Update")
 public class AutoUpdateFeature extends Feature {
    private static final Path TEMP_DIRECTORY = FabricLoader.getInstance().getGameDir().resolve("temp").resolve("breadsticks-update.jar");
@@ -48,6 +48,8 @@ public class AutoUpdateFeature extends Feature {
 
    @SubscribeEvent
    public void onJoinWorld(WorldStateEvent event) {
+      super.onJoinWorld(event);
+
       if (!event.isFirstJoinWorld() || FabricLoader.getInstance().isDevelopmentEnvironment()) return;
 
       update().thenAccept(result -> {
@@ -106,9 +108,10 @@ public class AutoUpdateFeature extends Feature {
 
    public enum Result {
       SUCCESSFUL("Successfully downloaded update, it will be applied on shutdown", ChatFormatting.GREEN),
-      ON_LATEST("Breadsticks.gg is already on the latest version", ChatFormatting.YELLOW),
-      DEV_ENV("Cannot download update while inside development environment", ChatFormatting.RED),
-      ERROR("An error has occurred while trying to update Breadsticks.gg", ChatFormatting.RED);
+      ON_LATEST("Already on the latest version", ChatFormatting.YELLOW),
+      AVAILABLE("Update available! Type '/bs update' to download it automatically", ChatFormatting.YELLOW),
+      DEV_ENV("Development environment detected, cancelling", ChatFormatting.RED),
+      ERROR("Error occurred while checking for updates", ChatFormatting.RED);
 
       private final StyledText message;
 

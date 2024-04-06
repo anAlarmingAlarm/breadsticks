@@ -6,10 +6,12 @@ import com.breadsticksmod.core.config.Config;
 import com.breadsticksmod.core.config.Writer;
 import com.breadsticksmod.core.toml.Toml;
 import com.breadsticksmod.core.util.Reflection;
+import com.breadsticksmod.client.util.SoundUtil;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.AbstractFieldBuilder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,9 +194,20 @@ public abstract class ConfigEntry<T> extends Annotated implements Buildable<Conf
    }
 
    public void load(Toml object) {
+      // to-do: on first config load it just does everything with default settings; why?
+      // System.out.println("breadsticks: " + getCategory() + " " + getSection() + " " + getKey() + " " + getDefault());
       if (!object.containsKey(getKey())) return;
 
       T result = from(object);
+
+      // Fix for imported fuy.gg configs having the wrong namespace in sound paths
+      if (result != null) {
+         if (((Object) result).getClass().getSimpleName().equals("SoundEvent")) {
+            if (((SoundEvent) result).getLocation().toString().startsWith("fuy:")) {
+               result = (T)SoundUtil.create("breadsticks:" + ((SoundEvent) result).getLocation().toString().substring(4));
+            }
+         }
+      }
 
       set(result == null ? getDefault() : result);
    }

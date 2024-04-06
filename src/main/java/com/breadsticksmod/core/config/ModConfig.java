@@ -28,6 +28,7 @@ import static com.wynntils.utils.mc.McUtils.mc;
 public class ModConfig implements Buildable<Screen, ConfigBuilder> {
    private final Map<Class<? extends Config>, Config> sections = new LinkedHashMap<>();
    private final File CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("breadsticks.toml").toFile();
+   private final File FUY_CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("fuy_gg.toml").toFile();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
    public ModConfig() {
@@ -72,6 +73,10 @@ public class ModConfig implements Buildable<Screen, ConfigBuilder> {
       return CONFIG_FILE;
    }
 
+   public File getFuyConfigFile() {
+      return FUY_CONFIG_FILE;
+   }
+
    @SuppressWarnings("unchecked")
    public <T extends Config> T getConfig(Class<?> clazz) {
       return (T) sections.get(clazz);
@@ -94,9 +99,13 @@ public class ModConfig implements Buildable<Screen, ConfigBuilder> {
    }
 
    public void load() {
-      if (!getConfigFile().exists()) return;
-
-      Toml config = Toml.read(getConfigFile());
+      final Toml config;
+      if (!getConfigFile().exists()) {
+         if (!getFuyConfigFile().exists()) return;
+         config = Toml.read(getFuyConfigFile());
+      } else {
+         config = Toml.read(getConfigFile());
+      }
 
       sections.values().forEach(section -> section.getEntries().forEach(entry -> entry.load(config)));
    }

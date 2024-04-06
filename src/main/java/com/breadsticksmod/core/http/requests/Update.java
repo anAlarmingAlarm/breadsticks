@@ -45,7 +45,7 @@ public record Update(Version version, String file, URL url) implements Version {
       return version.getFriendlyString();
    }
 
-   @AbstractRequest.Definition(route = "https://api.github.com/repos/Essentuan/fuy.gg/releases/latest", ratelimit = RateLimit.NONE)
+   @AbstractRequest.Definition(route = "https://api.github.com/repos/anAlarmingAlarm/breadsticks/releases/latest", ratelimit = RateLimit.NONE)
    public static class Request extends GetRequest<Update> {
 
       @Nullable

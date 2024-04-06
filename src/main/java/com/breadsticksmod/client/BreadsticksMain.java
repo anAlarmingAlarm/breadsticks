@@ -85,7 +85,7 @@ public class BreadsticksMain implements ClientModInitializer, BreadsticksExtensi
    @Override
    public String getPackage() {
       return "com.breadsticksmod";
-   }
+   } //
 
    @Override
    public String[] getSounds() {

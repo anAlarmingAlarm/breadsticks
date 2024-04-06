@@ -37,7 +37,7 @@ import static com.wynntils.utils.mc.McUtils.player;
 @Feature.Definition(name = "Lootrun Dry Streak")
 public class LootrunDryStreakFeature extends Feature {
    private static final Pattern PATTERN = Pattern.compile("You have (?<pulls>\\d*) rewards to pull");
-   private static final StyledText MYTHIC_ITEM = TextBuilder.of("Mythic Item", ChatFormatting.DARK_PURPLE).build();
+   //private static final StyledText MYTHIC_ITEM = TextBuilder.of("Mythic Item", ChatFormatting.DARK_PURPLE).build();
 
    @Hidden("Mythics")
    private static List<Pull> mythics = new ArrayList<>();

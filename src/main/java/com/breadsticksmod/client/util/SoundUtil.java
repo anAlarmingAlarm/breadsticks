@@ -23,7 +23,7 @@ public class SoundUtil {
         Minecraft.getInstance().getSoundManager().play(instance);
     }
 
-    static SoundEvent create(String string) {
+    public static SoundEvent create(String string) {
         return SoundEvent.createVariableRangeEvent(new ResourceLocation(string));
     }
 }
