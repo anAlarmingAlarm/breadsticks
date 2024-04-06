@@ -8,5 +8,25 @@
     "sounds": [
       "breadsticks:cheep_cheep"
     ]
+  },
+  "alert": {
+    "sounds": [
+      "breadsticks:alert"
+    ]
+  },
+  "alert.extended": {
+    "sounds": [
+      "breadsticks:alert.extended"
+    ]
+  },
+  "home.depot": {
+    "sounds": [
+      "breadsticks:home_depot"
+    ]
+  },
+  "home.depot.extended": {
+    "sounds": [
+      "breadsticks:home_depot_extended"
+    ]
   }
 }

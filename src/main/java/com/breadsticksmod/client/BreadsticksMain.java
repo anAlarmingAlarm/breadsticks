@@ -91,7 +91,11 @@ public class BreadsticksMain implements ClientModInitializer, BreadsticksExtensi
    public String[] getSounds() {
       return new String[]{
               "breadsticks:war.horn",
-              "breadsticks:cheep.cheep"
+              "breadsticks:cheep.cheep",
+              "breadsticks:alert",
+              "breadsticks:alert.extended",
+              "breadsticks:home.depot",
+              "breadsticks:home.depot.extended"
       };
    }
 }
