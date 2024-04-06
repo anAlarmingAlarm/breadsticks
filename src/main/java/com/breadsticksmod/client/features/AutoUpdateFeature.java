@@ -6,6 +6,7 @@ import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.Promise;
 import com.breadsticksmod.core.State;
+import com.breadsticksmod.core.config.Config;
 import com.breadsticksmod.core.http.requests.Update;
 import com.breadsticksmod.core.time.ChronoUnit;
 import com.wynntils.core.text.StyledText;
@@ -22,9 +23,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-@Default(State.DISABLED)
-@Feature.Definition(name = "Auto Update")
+@Default(State.ENABLED)
+@Config.Category("Updates")
+@Feature.Definition(name = "Check for updates on startup")
 public class AutoUpdateFeature extends Feature {
+   @Value("Auto Update")
+   @Default(State.DISABLED)
+   @Tooltip("WIP, currently doesn't work")
+   //@Tooltip("If enabled, the mod will update itself on startup if a new version is available. Does nothing unless the above option is enabled.")
+   private static boolean autoUpdate = false;
    private static final Path TEMP_DIRECTORY = FabricLoader.getInstance().getGameDir().resolve("temp").resolve("breadsticks-update.jar");
 
    @Override
@@ -52,14 +59,14 @@ public class AutoUpdateFeature extends Feature {
 
       if (!event.isFirstJoinWorld() || FabricLoader.getInstance().isDevelopmentEnvironment()) return;
 
-      update().thenAccept(result -> {
+      update(true).thenAccept(result -> {
          if (result == Result.ON_LATEST) return;
 
          ChatUtil.message(result.getMessage());
       });
    }
 
-   public static Promise<Result> update() {
+   public static Promise<Result> update(boolean auto) {
       if (FabricLoader.getInstance().isDevelopmentEnvironment()) return Promise.of(Result.DEV_ENV);
 
       File temp = getTempFile();
@@ -79,20 +86,25 @@ public class AutoUpdateFeature extends Feature {
                     return;
                  }
 
-                 FileUtils.createNewFile(temp);
+                 if (!auto || autoUpdate) {
+                    FileUtils.createNewFile(temp);
 
-                 try {
-                    InputStream download = update.download();
+                    try {
+                       InputStream download = update.download();
 
-                    Files.copy(download, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    promise.complete(Result.SUCCESSFUL);
-                 } catch (IOException e) {
-                    if (temp.exists()) FileUtils.deleteFile(temp);
-                    LOGGER.error("Error while downloading update", e);
-                    temp.delete();
+                       Files.copy(download, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                       promise.complete(Result.SUCCESSFUL);
+                    } catch (IOException e) {
+                       if (temp.exists()) FileUtils.deleteFile(temp);
+                       LOGGER.error("Error while downloading update", e);
+                       temp.delete();
 
-                    promise.complete(Result.ERROR);
+                       promise.complete(Result.ERROR);
+                    }
+                 } else {
+                    promise.complete(Result.AVAILABLE);
                  }
+
               }).completeOnTimeout(Result.ERROR, 1, ChronoUnit.MINUTES);
    }
 
