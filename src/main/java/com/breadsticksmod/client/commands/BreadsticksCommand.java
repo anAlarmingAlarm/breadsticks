@@ -172,6 +172,31 @@ public class BreadsticksCommand {
       });
    }
 
+   @Alias("gi")
+   @Subcommand("guildinfo")
+   private static void getGuildInfo(
+           CommandContext<FabricClientCommandSource> context,
+           @Argument("Guild") String string
+   ) {
+      SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+      ChatUtil.message("Finding guild %s...".formatted(string), GREEN);
+
+      Date start = new Date();
+      new Guild.Request(string).thenAccept(optional -> optional.ifPresentOrElse(guild -> {
+         List<Guild.Member> online = guild.stream().filter(member -> member.world().isPresent()).toList();
+
+         ChatUtil.message(TextBuilder.of(guild.name(), AQUA)
+                 .append(" [", DARK_AQUA).append(guild.prefix(), AQUA).append("] ", DARK_AQUA)
+                 .append("is level ", GRAY).append(guild.level(), AQUA)
+                 .append(" and has ", GRAY).append(online.size(), AQUA).append("/", DARK_AQUA).append(guild.size(), AQUA)
+                 .append(" members online. It was created on ", GRAY).append(formatter.format(guild.createdAt())).append(".", GRAY));
+      }, () -> {
+         if (Duration.since(start).greaterThan(10, SECONDS)) {
+            ChatUtil.message("Timeout finding guild %s".formatted(string), RED);
+         } else ChatUtil.message("Could not find guild %s".formatted(string), RED);
+      }));
+   }
+
    @Alias("pg")
    @Subcommand("playerguild")
    private static void getPlayerGuild(
@@ -236,9 +261,9 @@ public class BreadsticksCommand {
          if (player.rank() != Player.Rank.PLAYER && player.storeRank() != StoreRank.REGULAR) {
             builder = builder
                     .append(player.rank().prettyPrint(), AQUA)
-                    .append(" (", GRAY)
+                    .append(" (", DARK_AQUA)
                     .append(player.storeRank().prettyPrint(), AQUA)
-                    .append( ")", GRAY);
+                    .append( ")", DARK_AQUA);
          } else if (player.rank() != Player.Rank.PLAYER) {
             builder = builder.append(player.rank().prettyPrint(), AQUA);
          } else if (player.storeRank() != StoreRank.REGULAR) {
@@ -342,13 +367,12 @@ public class BreadsticksCommand {
          // first terr per digit in input code
          if (territories.get(i * 2).getOwner() != null) {
             if (num % 3 == 1) {
-               //if (!territories.get(i * 2).getOwner().prefix().equals(prefix)) {
                if (!terrCheckPrefix(territories.get(i * 2), prefix, byName)) {
                   caughtTerrs.add(territories.get(i * 2));
                }
             } else if (num % 3 == 2) {
                if (terrCheckPrefix(territories.get(i * 2), prefix, byName)) {
-                  caughtTerrs.add(territories.get(i * 2 + 1));
+                  caughtTerrs.add(territories.get(i * 2));
                }
             }
          }
@@ -383,9 +407,9 @@ public class BreadsticksCommand {
                  .append(caughtTerrs.get(0).getName(), AQUA)
                  .append(" is owned by [", GRAY)
                  .append(caughtTerrs.get(0).getOwner().prefix(), AQUA)
-                 .append("] (", GRAY)
+                 .append("] (", highlightTime ? DARK_AQUA : GRAY)
                  .append(caughtTerrs.get(0).getHeldFor().toString(COMPACT, SECONDS), highlightTime ? AQUA : GRAY)
-                 .append(")", GRAY)
+                 .append(")", highlightTime ? DARK_AQUA : GRAY)
                  .line();
          ChatUtil.messageClean(builder);
 
@@ -402,9 +426,9 @@ public class BreadsticksCommand {
                     .append(caughtTerr.getName(), AQUA)
                     .append(" is owned by [", GRAY)
                     .append(caughtTerr.getOwner().prefix(), AQUA)
-                    .append("] (", GRAY)
+                    .append("] (", highlightTime ? DARK_AQUA : GRAY)
                     .append(caughtTerr.getHeldFor().toString(COMPACT, SECONDS), highlightTime ? AQUA : GRAY)
-                    .append(")", GRAY)
+                    .append(")", highlightTime ? DARK_AQUA : GRAY)
                     .line();
          }
          ChatUtil.messageClean(builder);
