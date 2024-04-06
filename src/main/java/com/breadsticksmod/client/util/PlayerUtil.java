@@ -23,4 +23,8 @@ public class PlayerUtil {
 
       return player != null && player.getActiveEffectsMap().containsKey(effect);
    }
+
+   public static Position getPosition() {
+      return player().position();
+   }
 }

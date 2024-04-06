@@ -13,11 +13,11 @@ import java.util.regex.Pattern;
 @Default(State.DISABLED)
 @Feature.Definition(name = "Filter Guild Bank Messages")
 public class FilterGuildBankMessagesFeature extends Feature {
-   private static final Pattern GUILD_BANK_MESSAGE_PATTER = Pattern.compile("^\\[INFO] (?<player>.+) (?<action>(withdrew)|(deposited)) (?<item>.+) (from|to) the Guild Bank \\((?<bank>.+)\\)");
+   private static final Pattern GUILD_BANK_MESSAGE_PATTERN = Pattern.compile("^\\[INFO] (?<player>.+) (?<action>(withdrew)|(deposited)) (?<item>.+) (from|to) the Guild Bank \\((?<bank>.+)\\)");
 
    @SubscribeEvent
    public void onChatMessage(ChatMessageReceivedEvent event) {
-      Matcher matcher = event.getStyledText().getMatcher(GUILD_BANK_MESSAGE_PATTER, PartStyle.StyleType.NONE);
+      Matcher matcher = event.getStyledText().getMatcher(GUILD_BANK_MESSAGE_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) event.setCanceled(true);
    }
 }

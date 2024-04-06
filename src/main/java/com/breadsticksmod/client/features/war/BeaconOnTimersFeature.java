@@ -3,6 +3,7 @@ package com.breadsticksmod.client.features.war;
 import com.breadsticksmod.client.models.territory.TerritoryModel;
 import com.breadsticksmod.client.models.war.timer.Timer;
 import com.breadsticksmod.client.models.war.timer.TimerModel;
+import com.breadsticksmod.client.util.PlayerUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.State;
@@ -20,6 +21,7 @@ import com.wynntils.utils.colors.CustomColor;
 import com.wynntils.utils.mc.type.Location;
 import com.wynntils.utils.render.Texture;
 import com.wynntils.utils.render.type.TextShadow;
+import net.minecraft.core.Position;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.ArrayList;
@@ -38,6 +40,12 @@ public class BeaconOnTimersFeature extends Feature implements Beacon.Provider {
    @Value("Also show timers with a minute of soonest")
    @Tooltip("If enabled, also shows wars within a minute of the soonest timer (does nothing if the above setting is disabled)")
    private static boolean soonestMinute = false;
+   @Value("Only show beacons within a specific range")
+   @Tooltip("If enabled, the option below controls how many blocks you must be within a beacon for it to appear")
+   private static boolean distanceLimitEnabled = false;
+   @Value("Beacon visibility range")
+   @Tooltip("Hides beacons farther than this many blocks away from you (has no effect if the above option is disabled)")
+   private static float distanceLimit = 750;
 
    private final List<Beacon> BEACONS = new ArrayList<>();
    private final List<MarkerPoi> POIS = new ArrayList<>();
@@ -65,6 +73,18 @@ public class BeaconOnTimersFeature extends Feature implements Beacon.Provider {
               .stream()
               .filter(timer -> territories.contains(timer.getTerritory()))
               .filter(timer -> {
+                 if (distanceLimitEnabled) {
+                    Position player = PlayerUtil.getPosition();
+                    Location terr = Location.containing(territories.get(timer.getTerritory()).getLocation().getCenter());
+                    double distance = Math.sqrt(
+                         Math.pow((terr.x - player.x()), 2)
+                         +
+                         Math.pow((terr.z - player.z()), 2)
+                    );
+                    if (distance > distanceLimit) {
+                       return false;
+                    }
+                 }
                  if (soonestOnly) {
                     if (soonestMinute) {
                        return timer.getRemaining().toSeconds() <= first + 60;
