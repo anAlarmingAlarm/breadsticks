@@ -3,6 +3,7 @@ package com.breadsticksmod.core;
 import com.breadsticksmod.client.BreadsticksMain;
 import com.breadsticksmod.client.events.mc.MinecraftStartupEvent;
 import com.breadsticksmod.client.features.war.AuraNotificationFeature;
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.annotated.Annotated;
 import com.breadsticksmod.core.config.Config;
 import com.breadsticksmod.core.config.entry.ConfigEntry;
@@ -13,7 +14,9 @@ import com.breadsticksmod.core.heartbeat.Task;
 import com.breadsticksmod.core.render.overlay.Hud;
 import com.breadsticksmod.core.util.Reflection;
 import com.wynntils.core.components.Models;
+import com.wynntils.models.worlds.event.WorldStateEvent;
 import com.wynntils.models.worlds.type.WorldState;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -74,7 +77,7 @@ public abstract class Feature extends Config implements EventListener, Scheduler
          }
       }
 
-      this.enabled = getAnnotation(Default.class, Default::value).asBoolean();
+      //this.enabled = getAnnotation(Default.class, Default::value).asBoolean();
 
       getEntry(Feature.class, "enabled").ifPresent(entry -> {
          entry.setDefault(enabled);
@@ -208,10 +211,13 @@ public abstract class Feature extends Config implements EventListener, Scheduler
    @SubscribeEvent(priority = EventPriority.LOW)
    private static void onMinecraftStart(MinecraftStartupEvent event) {
       hasStarted = true;
+   }
 
+   @SubscribeEvent
+   public void onJoinWorld(WorldStateEvent event) {
       CONFIG.getConfigs().forEach(config -> {
-         if (config instanceof Feature feature && feature.shouldEnable()) {
-            feature.enable();
+         if (config instanceof Feature feature) {
+            feature.setEnabled(feature.shouldEnable());
          }
       });
    }

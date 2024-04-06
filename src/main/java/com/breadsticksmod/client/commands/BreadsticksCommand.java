@@ -9,6 +9,7 @@ import com.breadsticksmod.core.http.api.Find;
 import com.breadsticksmod.core.http.api.guild.Guild;
 import com.breadsticksmod.core.http.api.guild.GuildType;
 import com.breadsticksmod.core.http.api.player.Player;
+import com.breadsticksmod.core.http.api.player.StoreRank;
 import com.breadsticksmod.core.http.requests.serverlist.ServerList;
 import com.breadsticksmod.core.text.TextBuilder;
 import com.breadsticksmod.core.time.ChronoUnit;
@@ -28,6 +29,7 @@ import com.wynntils.core.components.Managers;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -220,6 +222,64 @@ public class BreadsticksCommand {
       });
    }
 
+   @Alias("pi")
+   @Subcommand("playerinfo")
+   private static void getPlayerInfo(
+           CommandContext<FabricClientCommandSource> context,
+           @Argument("Player") String string
+   ) {
+      SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+      getPlayer(string, player -> {
+         TextBuilder builder = TextBuilder.of(player.username(), AQUA)
+                 .append(" is a ", GRAY);
+
+         if (player.rank() != Player.Rank.PLAYER && player.storeRank() != StoreRank.REGULAR) {
+            builder = builder
+                    .append(player.rank().prettyPrint(), AQUA)
+                    .append(" (", GRAY)
+                    .append(player.storeRank().prettyPrint(), AQUA)
+                    .append( ")", GRAY);
+         } else if (player.rank() != Player.Rank.PLAYER) {
+            builder = builder.append(player.rank().prettyPrint(), AQUA);
+         } else if (player.storeRank() != StoreRank.REGULAR) {
+            builder = builder.append(player.storeRank().prettyPrint(), AQUA);
+         } else {
+            builder = builder.append("Player", AQUA);
+         }
+
+         builder = builder
+                 .append(" who has played for ", GRAY)
+                 .append(player.playtime().toHours(), AQUA)
+                 .append( " hours. They first joined on ", GRAY)
+                 .append(formatter.format(player.firstJoin()), AQUA);
+
+         if (player.world().isPresent()) {
+            builder = builder.append(" and are currently on ", GRAY)
+                    .append(player.world().get(), AQUA);
+         } else {
+            builder = builder.append(" and last logged on ", GRAY)
+                    .append(formatter.format(player.lastJoin()), AQUA);
+         }
+
+         if (player.guild().isPresent()) {
+            Player.Guild guild = player.guild().get();
+            String rank = player.guild().get().rank().toString();
+            rank = rank.substring(0, 1).toUpperCase() + rank.substring(1).toLowerCase();
+            builder = builder.append(". They are " + (rank.equalsIgnoreCase("owner") ? "the " : "a "), GRAY)
+                    .append(rank, AQUA)
+                    .append(rank.equalsIgnoreCase("owner") ? " of " : " in ", GRAY)
+                    .append(guild.name(), AQUA)
+                    .append(" [", GRAY)
+                    .append(guild.prefix(), AQUA)
+                    .append("].", GRAY);
+         } else {
+            builder = builder.append(". They are not in a guild.", GRAY);
+         }
+
+         ChatUtil.message(builder);
+      });
+   }
+
    @Subcommand("wars")
    private static void getWars(
            CommandContext<FabricClientCommandSource> context,
@@ -247,7 +307,11 @@ public class BreadsticksCommand {
    }
 
    private static void getPlayer(String string, Consumer<Player> consumer) {
-      ChatUtil.message("Finding player %s...".formatted(string), ChatFormatting.GREEN);
+      getPlayer(string, consumer, false);
+   }
+
+   private static void getPlayer(String string, Consumer<Player> consumer, boolean silent) {
+      if (!silent) ChatUtil.message("Finding player %s...".formatted(string), ChatFormatting.GREEN);
 
       new Player.Request(string).thenAccept(optional -> optional.ifPresentOrElse(consumer, () -> ChatUtil.message("Could not find player %s".formatted(string), ChatFormatting.RED)));
    }

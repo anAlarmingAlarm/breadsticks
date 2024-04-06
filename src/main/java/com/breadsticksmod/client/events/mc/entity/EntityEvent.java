@@ -1,10 +1,13 @@
 package com.breadsticksmod.client.events.mc.entity;
 
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.events.BaseEvent;
 import com.breadsticksmod.core.time.ChronoUnit;
 import com.breadsticksmod.core.util.TempMap;
 import com.wynntils.mc.event.AddEntityEvent;
 import com.wynntils.mc.event.TickEvent;
+import com.wynntils.models.worlds.event.WorldStateEvent;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Position;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -109,6 +112,14 @@ public abstract class EntityEvent extends BaseEvent {
       @SubscribeEvent
       private static void onTick(TickEvent event) {
          WAITING.cleanup(e -> new Spawn(e).post());
+      }
+
+      @SubscribeEvent
+      public static void onJoinWorld(WorldStateEvent event) {
+         // just gonna hijack this class rq to send this message with
+         if (event.isFirstJoinWorld()) {
+            ChatUtil.message("There is currently a bug causing configs to not load on startup. Until it is fixed, the workaround is to open the config (/bs config), change any option, then save. After that the config should function properly until you restart Minecraft.", ChatFormatting.GRAY);
+         }
       }
 
       @Deprecated
