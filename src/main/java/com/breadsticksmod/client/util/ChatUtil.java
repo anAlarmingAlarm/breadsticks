@@ -37,7 +37,6 @@ public class ChatUtil {
    private static final Component PREFIX = component("[", YELLOW)
            .append(component("breadsticks", GOLD))
            .append(component("]", YELLOW))
-           //.append(component(" ⋙ ", WHITE))
            .append(component(" ", RESET));
    private static final int PREFIX_LENGTH = StyledText.fromComponent(PREFIX).length();
 
@@ -46,6 +45,10 @@ public class ChatUtil {
 
    public static MutableComponent create(String text, ChatFormatting... formats) {
       return create(component(text, formats));
+   }
+
+   public static MutableComponent createClean(String text, ChatFormatting... formats) {
+      return createClean(component(text, formats));
    }
 
    public static void message(String message, ChatFormatting... formats) {
@@ -71,6 +74,19 @@ public class ChatUtil {
 
       FontRenderer.split(message, 0).forEach(text ->
               sendMessageToClient(text.isBlank() ? Component.empty() : create(text.getComponent())));
+   }
+
+
+   public static void messageClean(TextBuilder message) {
+      messageClean(message.build());
+   }
+
+
+   public static void messageClean(StyledText message) {
+      if (mc().player == null) return;
+
+      FontRenderer.split(message, 0).forEach(text ->
+              sendMessageToClient(text.isBlank() ? Component.empty() : createClean(text.getComponent())));
    }
 
 
@@ -145,6 +161,10 @@ public class ChatUtil {
 
    public static MutableComponent create(Component base) {
       return PREFIX.copy().append(base);
+   }
+
+   public static MutableComponent createClean(Component base) {
+      return base.copy();
    }
 
    public static String strip(String input) {

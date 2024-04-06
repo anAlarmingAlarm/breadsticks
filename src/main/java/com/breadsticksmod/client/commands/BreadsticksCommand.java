@@ -4,16 +4,19 @@ import com.breadsticksmod.client.commands.subcommands.LootrunCommand;
 import com.breadsticksmod.client.features.AutoStreamFeature;
 import com.breadsticksmod.client.features.AutoUpdateFeature;
 import com.breadsticksmod.client.features.war.WeeklyWarCountOverlay;
+import com.breadsticksmod.client.models.territory.TerritoryModel;
 import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.http.api.Find;
 import com.breadsticksmod.core.http.api.guild.Guild;
 import com.breadsticksmod.core.http.api.guild.GuildType;
 import com.breadsticksmod.core.http.api.player.Player;
 import com.breadsticksmod.core.http.api.player.StoreRank;
+import com.breadsticksmod.core.http.requests.mapstate.Territory;
 import com.breadsticksmod.core.http.requests.serverlist.ServerList;
 import com.breadsticksmod.core.text.TextBuilder;
 import com.breadsticksmod.core.time.ChronoUnit;
 import com.breadsticksmod.core.time.Duration;
+import com.breadsticksmod.core.time.FormatFlag;
 import com.breadsticksmod.core.tuples.Pair;
 import com.breadsticksmod.core.util.StringUtil;
 import com.breadsticksmod.core.util.iterators.Iter;
@@ -23,17 +26,20 @@ import com.essentuan.acf.core.annotations.Command;
 import com.essentuan.acf.core.annotations.Inherit;
 import com.essentuan.acf.core.annotations.Subcommand;
 import com.essentuan.acf.core.command.arguments.builtin.primitaves.String.StringType;
+import com.wynntils.core.components.Models;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import com.mojang.brigadier.context.CommandContext;
 import com.wynntils.core.components.Managers;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static com.breadsticksmod.client.BreadsticksMain.CONFIG;
@@ -41,14 +47,8 @@ import static com.breadsticksmod.core.time.ChronoUnit.MINUTES;
 import static com.breadsticksmod.core.time.ChronoUnit.SECONDS;
 import static com.breadsticksmod.core.time.FormatFlag.COMPACT;
 import static com.mojang.brigadier.arguments.StringArgumentType.StringType.GREEDY_PHRASE;
-import static net.minecraft.ChatFormatting.AQUA;
-import static net.minecraft.ChatFormatting.DARK_AQUA;
-import static net.minecraft.ChatFormatting.DARK_PURPLE;
-import static net.minecraft.ChatFormatting.GRAY;
-import static net.minecraft.ChatFormatting.LIGHT_PURPLE;
-import static net.minecraft.ChatFormatting.RED;
-import static net.minecraft.ChatFormatting.WHITE;
-import static net.minecraft.ChatFormatting.YELLOW;
+import static com.wynntils.utils.mc.McUtils.player;
+import static net.minecraft.ChatFormatting.*;
 
 @Alias("bs")
 @Command("breadsticks")
@@ -73,7 +73,7 @@ public class BreadsticksCommand {
            CommandContext<FabricClientCommandSource> context,
            @Argument("Guild") @StringType(GREEDY_PHRASE) String string
    ) {
-      ChatUtil.message("Finding guild %s...".formatted(string), ChatFormatting.GREEN);
+      ChatUtil.message("Finding guild %s...".formatted(string), GREEN);
 
       Date start = new Date();
       new Guild.Request(string).thenAccept(optional -> optional.ifPresentOrElse(guild -> {
@@ -99,7 +99,7 @@ public class BreadsticksCommand {
                          b -> b.append(", ", AQUA)
                  ));
       }, () -> {
-         if (Duration.since(start).greaterThan(10, ChronoUnit.SECONDS)) {
+         if (Duration.since(start).greaterThan(10, SECONDS)) {
             ChatUtil.message("Timeout finding guild %s".formatted(string), RED);
          } else ChatUtil.message("Could not find guild %s".formatted(string), RED);
       }));
@@ -110,13 +110,13 @@ public class BreadsticksCommand {
            CommandContext<FabricClientCommandSource> context,
            @Argument("Player") String string
    ) {
-      ChatUtil.message("Finding player %s...".formatted(string), ChatFormatting.GREEN);
+      ChatUtil.message("Finding player %s...".formatted(string), GREEN);
 
       new Find.Request(string).thenAccept(optional -> optional.ifPresentOrElse(player -> player.getWorld().ifPresentOrElse(world -> ChatUtil.message(TextBuilder.of(player.getUsername(), AQUA)
                       .append(" is on ", GRAY)
                       .append(world, AQUA)), () -> ChatUtil.message(TextBuilder.of(player.getUsername(), AQUA)
                       .append(" is not ", GRAY).append("online", AQUA))),
-              () -> ChatUtil.message("Could not find player %s".formatted(string), ChatFormatting.RED)));
+              () -> ChatUtil.message("Could not find player %s".formatted(string), RED)));
    }
 
    @Alias("ls")
@@ -133,7 +133,7 @@ public class BreadsticksCommand {
                          .append(" is on ", GRAY)
                          .append(world)), () -> ChatUtil.message(TextBuilder.of(player.username(), AQUA)
                  .append(" was last seen ", GRAY)
-                 .append(lastSeen.getPart(MINUTES) > 1 ? lastSeen.toString(COMPACT, MINUTES) : lastSeen.toString(COMPACT, ChronoUnit.SECONDS), AQUA)
+                 .append(lastSeen.getPart(MINUTES) > 1 ? lastSeen.toString(COMPACT, MINUTES) : lastSeen.toString(COMPACT, SECONDS), AQUA)
                  .append(" ago", GRAY)));
       });
    }
@@ -196,7 +196,7 @@ public class BreadsticksCommand {
                      Duration duration = Duration.since(member.joinedAt());
 
                      builder.append(". They have been in the guild for ", GRAY)
-                             .append(duration.getPart(MINUTES) > 1 ? duration.toString(COMPACT, MINUTES) : duration.toString(COMPACT, ChronoUnit.SECONDS), AQUA)
+                             .append(duration.getPart(MINUTES) > 1 ? duration.toString(COMPACT, MINUTES) : duration.toString(COMPACT, SECONDS), AQUA)
                              .append(".", GRAY);
                   }
                });
@@ -280,6 +280,214 @@ public class BreadsticksCommand {
       });
    }
 
+   @Alias("tc")
+   @Subcommand("terrcheck help")
+   private static void terrCheckHelp(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      ChatUtil.message(TextBuilder.of("The terrcheck command requires a guild prefix (or \"-\" for your own guild) along with a territory code as input.", GRAY));
+      TextBuilder builder = TextBuilder.of("You can use this spreadsheet to generate a code.", AQUA, UNDERLINE)
+              .onClick(ClickEvent.Action.OPEN_URL, "https://docs.google.com/spreadsheets/d/1zZhAEYI247FDhfx7j72muBX1xRWodsZGpIDG196mHnM/edit?usp=sharing");
+      ChatUtil.messageClean(builder);
+      ChatUtil.messageClean(TextBuilder.of("You can also use the terrcheckfile (tcf) command to do this automatically based on a file. Terrcheck files can be used from the breadsticks\\terrcheckfiles folder in your config folder; for more info, see the FFA.txt file in that directory.", GRAY));
+   }
+
+   @Alias("tc")
+   @Subcommand("terrcheck")
+   private static void terrCheckHelper(
+           CommandContext<FabricClientCommandSource> context,
+           @Argument("Prefix") String prefix,
+           @Argument("Territories") String string
+   ) {
+      if (prefix.equals("-")) {
+         terrCheck(context, Models.Guild.getGuildName(), string, true);
+      } else {
+         terrCheck(context, prefix, string, false);
+      }
+   }
+
+   @Alias("tcf")
+   @Subcommand("terrcheckfile")
+   private static void terrCheckFile(
+           CommandContext<FabricClientCommandSource> context,
+           @Argument("Filename") String file
+   ) {
+      try {
+         File tcFile = FabricLoader.getInstance().getConfigDir().resolve("breadsticks\\terrcheckfiles\\" + file + ".txt").toFile();
+         Scanner scanner = new Scanner(tcFile);
+         String prefix = scanner.nextLine();
+         String code = scanner.nextLine();
+         scanner.close();
+         terrCheckHelper(context, prefix, code);
+      } catch (FileNotFoundException e) {
+         ChatUtil.message(TextBuilder.of("Could not find file", RED));
+      } catch (Exception e) {
+         ChatUtil.message(TextBuilder.of("Failed to open file", RED));
+      }
+   }
+
+   private static void terrCheck(
+           CommandContext<FabricClientCommandSource> context,
+           String prefix,
+           String string,
+           boolean byName
+   ) {
+      List<Territory> territories = new ArrayList<>(TerritoryModel.getTerritoryList().stream().toList());
+      territories.sort(Comparator.comparing(territory -> territory.getName().toLowerCase()));
+
+      List<Territory> caughtTerrs = new ArrayList<>();
+      for (int i = 0; i < string.length(); i++) {
+         int num = Integer.parseInt(String.valueOf(string.charAt(i))); // bleh
+
+         // first terr per digit in input code
+         if (territories.get(i * 2).getOwner() != null) {
+            if (num % 3 == 1) {
+               //if (!territories.get(i * 2).getOwner().prefix().equals(prefix)) {
+               if (!terrCheckPrefix(territories.get(i * 2), prefix, byName)) {
+                  caughtTerrs.add(territories.get(i * 2));
+               }
+            } else if (num % 3 == 2) {
+               if (terrCheckPrefix(territories.get(i * 2), prefix, byName)) {
+                  caughtTerrs.add(territories.get(i * 2 + 1));
+               }
+            }
+         }
+
+         // second terr per digit
+         if (territories.get(i * 2 + 1).getOwner() != null && i + 1 != string.length()) {
+            if (num / 3 == 1) {
+               if (!terrCheckPrefix(territories.get(i * 2 + 1), prefix, byName)) {
+                  caughtTerrs.add(territories.get(i * 2 + 1));
+               }
+            } else if (num / 3 == 2) {
+               if (terrCheckPrefix(territories.get(i * 2 + 1), prefix, byName)) {
+                  caughtTerrs.add(territories.get(i * 2 + 1));
+               }
+            }
+         }
+      }
+
+      TextBuilder builder;
+      if (caughtTerrs.isEmpty()) {
+         builder = TextBuilder.of("No territories matched the criteria.", GRAY);
+         ChatUtil.message(builder);
+
+      } else if (caughtTerrs.size() == 1) {
+         builder = TextBuilder.of("Found ", GRAY)
+                 .append(" 1 ", AQUA)
+                 .append(" territory:", GRAY);
+         ChatUtil.message(builder);
+
+         boolean highlightTime = caughtTerrs.get(0).getHeldFor().toMinutes() >= 10;
+         builder.append("| ", YELLOW)
+                 .append(caughtTerrs.get(0).getName(), AQUA)
+                 .append(" is owned by [", GRAY)
+                 .append(caughtTerrs.get(0).getOwner().prefix(), AQUA)
+                 .append("] (", GRAY)
+                 .append(caughtTerrs.get(0).getHeldFor().toString(COMPACT, SECONDS), highlightTime ? AQUA : GRAY)
+                 .append(")", GRAY)
+                 .line();
+         ChatUtil.messageClean(builder);
+
+      } else {
+         builder = TextBuilder.of("Found ", GRAY)
+                 .append(caughtTerrs.size(), AQUA)
+                 .append(" territories:", GRAY);
+         ChatUtil.message(builder);
+
+         builder = TextBuilder.empty();
+         for (Territory caughtTerr : caughtTerrs) {
+            boolean highlightTime = caughtTerr.getHeldFor().toMinutes() >= 10;
+            builder.append("| ", YELLOW)
+                    .append(caughtTerr.getName(), AQUA)
+                    .append(" is owned by [", GRAY)
+                    .append(caughtTerr.getOwner().prefix(), AQUA)
+                    .append("] (", GRAY)
+                    .append(caughtTerr.getHeldFor().toString(COMPACT, SECONDS), highlightTime ? AQUA : GRAY)
+                    .append(")", GRAY)
+                    .line();
+         }
+         ChatUtil.messageClean(builder);
+      }
+   }
+
+   private static boolean terrCheckPrefix(Territory territory, String prefix, boolean byName) {
+      if (byName) {
+         return territory.getOwner().name().equals(prefix);
+      } else {
+         return territory.getOwner().prefix().equals(prefix);
+      }
+   }
+
+   @Alias("up")
+   @Subcommand("uptime")
+   private static void getServerUptime(
+           CommandContext<FabricClientCommandSource> context,
+           @Argument("Server") String server
+   ) {
+      server = server.toUpperCase();
+      if (!server.startsWith("WC")) {
+         server = "WC" + server;
+      }
+      String finalServer = server;
+      new ServerList.Request().thenApply(Optional::orElseThrow).thenAccept(servers -> {
+
+         TextBuilder builder = TextBuilder.of("World ", GRAY)
+                 .append(finalServer, AQUA)
+                 .append(" has been online for ", GRAY)
+                 .append(servers.get(String.valueOf(finalServer)).getUptime().toString(COMPACT, SECONDS), AQUA)
+                 .append(".", GRAY);
+
+         ChatUtil.message(builder);
+      });
+   }
+
+   @Alias("upr")
+   @Subcommand("uptimerecent")
+   private static void getServerUptimeRecent(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      new ServerList.Request().thenApply(Optional::orElseThrow).thenAccept(servers -> {
+         TextBuilder builder = TextBuilder.of("Most recently started servers: ", GRAY).line();
+
+         TextBuilder builder2 = TextBuilder.empty();
+         builder2.append(Iter.of(
+                 servers.stream()
+                         .filter(world -> !world.getWorld().isBlank())
+                         .map(world -> Pair.of(
+                                 world,
+                                 world.getUptime()
+                         )).sorted(Comparator.comparing(Pair::two))
+                         .limit(9)
+                         .iterator()
+         ), pair -> builder2.append("| ", YELLOW)
+                 .append(pair.one().getWorld(), AQUA)
+                 .append(" started ", GRAY)
+                 .append(pair.two().toString(COMPACT, SECONDS), AQUA)
+                 .append(" ago", GRAY)
+                 .onHover(b -> b
+                         .append("Click to switch to ", GRAY)
+                         .append(pair.one().getWorld(), WHITE)
+                         .line()
+                         .append("(Requires ", DARK_PURPLE)
+                         .append("HERO", LIGHT_PURPLE)
+                         .append(" rank)", DARK_PURPLE))
+                 .onClick(ClickEvent.Action.RUN_COMMAND, "/switch " + pair.one().getWorld()))
+                 .line();
+         Managers.TickScheduler.scheduleNextTick(() -> {
+            ChatUtil.message(builder);
+            Managers.TickScheduler.scheduleNextTick(() -> ChatUtil.messageClean(builder2));
+         });
+      });
+   }
+
+   @Subcommand("update")
+   private static void onUpdate(CommandContext<?> context) {
+      ChatUtil.message("Attempting update...", YELLOW);
+
+      AutoUpdateFeature.update(false).thenAccept(result -> ChatUtil.message(result.getMessage()));
+   }
+
    @Subcommand("wars")
    private static void getWars(
            CommandContext<FabricClientCommandSource> context,
@@ -299,20 +507,13 @@ public class BreadsticksCommand {
       );
    }
 
-   @Subcommand("update")
-   private static void onUpdate(CommandContext<?> context) {
-      ChatUtil.message("Attempting update...", YELLOW);
-
-      AutoUpdateFeature.update(false).thenAccept(result -> ChatUtil.message(result.getMessage()));
-   }
-
    private static void getPlayer(String string, Consumer<Player> consumer) {
       getPlayer(string, consumer, false);
    }
 
    private static void getPlayer(String string, Consumer<Player> consumer, boolean silent) {
-      if (!silent) ChatUtil.message("Finding player %s...".formatted(string), ChatFormatting.GREEN);
+      if (!silent) ChatUtil.message("Finding player %s...".formatted(string), GREEN);
 
-      new Player.Request(string).thenAccept(optional -> optional.ifPresentOrElse(consumer, () -> ChatUtil.message("Could not find player %s".formatted(string), ChatFormatting.RED)));
+      new Player.Request(string).thenAccept(optional -> optional.ifPresentOrElse(consumer, () -> ChatUtil.message("Could not find player %s".formatted(string), RED)));
    }
 }

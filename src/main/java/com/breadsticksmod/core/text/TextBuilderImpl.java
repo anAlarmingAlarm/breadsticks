@@ -215,6 +215,13 @@ class TextBuilderImpl implements TextBuilder {
    }
 
    @Override
+   public TextBuilder lineClean() {
+      append("\n");
+
+      return next();
+   }
+
+   @Override
    public TextBuilder space() {
       return append(" ");
    }
