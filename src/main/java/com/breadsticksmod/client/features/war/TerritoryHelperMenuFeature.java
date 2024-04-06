@@ -10,11 +10,22 @@ import com.breadsticksmod.core.State;
 import com.breadsticksmod.core.config.Config;
 import com.breadsticksmod.core.heartbeat.Heartbeat;
 import com.breadsticksmod.core.time.ChronoUnit;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.wynntils.core.consumers.overlays.OverlayPosition;
 import com.wynntils.core.text.StyledText;
 import com.wynntils.mc.event.ContainerClickEvent;
 import com.wynntils.mc.event.ContainerSetContentEvent;
 import com.wynntils.mc.event.MenuEvent;
+import com.wynntils.mc.event.SlotRenderEvent;
+import com.wynntils.core.consumers.overlays.TextOverlay;
 import com.wynntils.models.worlds.event.WorldStateEvent;
+import com.wynntils.utils.render.FontRenderer;
+import com.wynntils.utils.render.TextRenderSetting;
+import com.wynntils.utils.render.TextRenderTask;
+import com.wynntils.utils.render.type.HorizontalAlignment;
+import com.wynntils.utils.render.type.TextShadow;
+import com.wynntils.utils.render.type.VerticalAlignment;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -23,6 +34,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static com.breadsticksmod.client.models.territory.eco.Patterns.GUILD_MANAGE_MENU;
 import static com.breadsticksmod.client.screen.territories.ManageTerritoriesScreen.TERRITORY_MENU_PATTERN;
@@ -41,6 +53,10 @@ public class TerritoryHelperMenuFeature extends Feature {
 
    @Value("Replace loadouts menu")
    static boolean replaceLoadouts = true;
+
+   @Value("Show 1s next to Lv. 1 upgrades/bonuses")
+   @Tooltip("When enabled, Lv. 1 territory upgrades and bonuses will show a 1 next to them similar to the number shown for Lv. 2 and above upgrades and bonuses")
+   private static boolean showOnesInLevels = true;
 
    @Value("Hide ignored territories")
    @Tooltip({
@@ -90,6 +106,12 @@ public class TerritoryHelperMenuFeature extends Feature {
            "Dernel Jungle Upper"
    );
 
+   public static final Pattern TERRITORY_UPGRADE_PATTERN = Pattern.compile("^.*: Guild Tower$");
+
+   public static final Pattern TERRITORY_BONUSES_PATTERN = Pattern.compile("^.*: Bonus$");
+
+   public static final Pattern LV1_PATTERN = Pattern.compile(".*\\[Lv\\. 1]");
+
    public static boolean hideIgnoredTerritories() {
       return hideIgnoredTerritories;
    }
@@ -125,10 +147,13 @@ public class TerritoryHelperMenuFeature extends Feature {
          mc().setScreen(new SelectTerritoriesScreen(event.getContainerId(), production, percents));
          event.setCanceled(true);
       } else if (text.matches(GUILD_MANAGE_MENU) && OPEN_TERRITORY_MENU) event.setCanceled(true);
+
+      TOWER_MENU = text.matches(TERRITORY_UPGRADE_PATTERN) || text.matches(TERRITORY_BONUSES_PATTERN);
    }
 
    public static boolean OPEN_TERRITORY_MENU = false;
    private static boolean NO_RESET = false;
+   private static boolean TOWER_MENU = false;
 
    @SubscribeEvent(priority = EventPriority.HIGH)
    public void onMenuSetContents(ContainerSetContentEvent.Pre event) {
@@ -156,5 +181,76 @@ public class TerritoryHelperMenuFeature extends Feature {
    @SubscribeEvent
    public void onWorldSwap(WorldStateEvent event) {
       OPEN_TERRITORY_MENU = false;
+      TOWER_MENU = false;
+   }
+
+   @SubscribeEvent
+   public void onRenderSlot(SlotRenderEvent.Post e) {
+      if (showOnesInLevels && TOWER_MENU) drawTextOverlay(e.getPoseStack(), e.getSlot().getItem(), e.getSlot().x, e.getSlot().y, false);
+   }
+
+   private void drawTextOverlay(PoseStack poseStack, ItemStack itemStack, int slotX, int slotY, boolean hotbar) {
+      if (LV1_PATTERN.matcher(ChatUtil.strip(itemStack.getDisplayName())).find()) {
+         TextOverlay textOverlay = UpgradeOverlay.getTextOverlay();
+         if (textOverlay == null) return;
+
+         poseStack.pushPose();
+         poseStack.translate(0, 0, 300); // items are drawn at z300, so text has to be as well
+         poseStack.scale(1, 1, 1);
+         float x = slotX + 11;
+         float y = slotY + 9;
+         FontRenderer.getInstance().renderText(poseStack, x, y, new TextRenderTask("1", TextRenderSetting.DEFAULT.withTextShadow(TextShadow.NORMAL)));
+         poseStack.popPose();
+      }
+   }
+
+   public static class UpgradeOverlay extends TextOverlay {
+      public UpgradeOverlay() {
+         super(
+            new OverlayPosition(
+               5,
+               0,
+               VerticalAlignment.TOP,
+               HorizontalAlignment.LEFT,
+               OverlayPosition.AnchorSection.BOTTOM_RIGHT
+            ),
+            200,
+            100
+         );
+      }
+
+      public static TextOverlay getTextOverlay() {
+         return new TextOverlay(new OverlayPosition(
+                 5,
+                 0,
+                 VerticalAlignment.TOP,
+                 HorizontalAlignment.LEFT,
+                 OverlayPosition.AnchorSection.BOTTOM_RIGHT
+         ),
+                 200,
+                 100) {
+            @Override
+            protected String getTemplate() {
+               return null;
+            }
+
+            @Override
+            protected String getPreviewTemplate() {
+               return null;
+            }
+         };
+      }
+
+      @Override
+      protected String getTemplate() {
+         return null;
+      }
+
+      @Override
+      protected String getPreviewTemplate() {
+         return null;
+      }
+
+
    }
 }
