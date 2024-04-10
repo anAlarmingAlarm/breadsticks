@@ -115,7 +115,6 @@ public class ModConfig implements Buildable<Screen, ConfigBuilder> {
 
       sections.values().forEach(section -> section.getEntries().forEach(entry -> entry.load(config)));
 
-      System.out.println(FabricLoader.getInstance().getConfigDir() + "\\breadsticks\\terrcheckfiles");
       try {
          if (!Files.isDirectory(Paths.get(FabricLoader.getInstance().getConfigDir() + "\\breadsticks\\terrcheckfiles"))) {
             if (!Files.isDirectory(Paths.get(FabricLoader.getInstance().getConfigDir() + "\\breadsticks")))
