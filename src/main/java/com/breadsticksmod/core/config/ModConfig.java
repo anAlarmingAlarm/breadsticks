@@ -10,6 +10,7 @@ import com.breadsticksmod.core.toml.Toml;
 import com.breadsticksmod.core.util.ClassOrdering;
 import com.breadsticksmod.core.util.Reflection;
 import com.wynntils.core.components.Managers;
+import com.wynntils.models.worlds.event.WorldStateEvent;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
@@ -18,12 +19,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -170,6 +169,13 @@ public class ModConfig implements Buildable<Screen, ConfigBuilder> {
 
    public void open() {
       Managers.TickScheduler.scheduleNextTick(() -> mc().setScreen(CONFIG.build(mc().screen).build()));
+   }
+
+   @SubscribeEvent
+   public static void onJoinWorld(WorldStateEvent event) {
+      if (event.isFirstJoinWorld()) {
+         CONFIG.load();
+      }
    }
 
    @SubscribeEvent
