@@ -29,30 +29,28 @@ import java.nio.file.StandardCopyOption;
 public class AutoUpdateFeature extends Feature {
    @Value("Auto Update")
    @Default(State.DISABLED)
-   @Tooltip("WIP, currently doesn't work")
-   //@Tooltip("If enabled, the mod will update itself on startup if a new version is available. Does nothing unless the above option is enabled.")
+   @Tooltip("If enabled, the mod will update itself on startup if a new version is available. Does nothing unless the above option is enabled.")
    private static boolean autoUpdate = false;
+
    private static final Path TEMP_DIRECTORY = FabricLoader.getInstance().getGameDir().resolve("temp").resolve("breadsticks-update.jar");
 
    @Override
    protected void onInit() {
-      if (autoUpdate) {
-         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            File temp = getTempFile();
-            if (!temp.exists()) return;
-            else if (temp.isDirectory()) {
-               temp.delete();
-               return;
-            }
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+         File temp = getTempFile();
+         if (!temp.exists()) return;
+         else if (temp.isDirectory()) {
+            temp.delete();
+            return;
+         }
 
-            try {
-               FileUtils.copyFile(temp, BreadsticksMain.getJar());
-               temp.delete();
-            } catch (IOException e) {
-               throw new RuntimeException(e);
-            }
-         }));
-      }
+         try {
+            FileUtils.copyFile(temp, BreadsticksMain.getJar());
+            temp.delete();
+         } catch (IOException e) {
+            throw new RuntimeException(e);
+         }
+      }));
    }
 
    @SubscribeEvent
