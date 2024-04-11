@@ -9,7 +9,6 @@ import com.wynntils.handlers.chat.event.ChatMessageReceivedEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.awt.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,8 +16,8 @@ import java.util.regex.Pattern;
 @Config.Category("War")
 @Feature.Definition(name = "Filter Guild War Messages")
 public class FilterGuildWarMessagesFeature extends Feature {
-   private static final Pattern GUILD_CHAT_PATTERN = Pattern.compile("^&3\\[&b.*&r&3]&b .* defense is (Very Low|Low|Medium|High|Very High)$");
-   private static final Pattern WAR_PATTERN = Pattern.compile("&3\\[WAR]&c The war for .* will start in \\d+ minutes.");
+   private static final Pattern GUILD_CHAT_PATTERN = Pattern.compile("^\\[.+] .+ defense is (Very Low|Low|Medium|High|Very High)$");
+   private static final Pattern WAR_PATTERN = Pattern.compile("^\\[WAR] The war for .+ will start in .+");
 
    @SubscribeEvent(priority = EventPriority.LOW)
    public void onChatMessage(ChatMessageReceivedEvent event) {

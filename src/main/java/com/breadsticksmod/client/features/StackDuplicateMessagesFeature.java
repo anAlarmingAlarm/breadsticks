@@ -1,13 +1,10 @@
 package com.breadsticksmod.client.features;
 
 import com.breadsticksmod.client.events.mc.chat.MessageAddEvent;
-import com.breadsticksmod.client.util.PlayerUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.State;
-import com.breadsticksmod.core.heartbeat.annotations.Schedule;
 import com.breadsticksmod.core.text.TextBuilder;
-import com.breadsticksmod.core.time.ChronoUnit;
 import com.wynntils.core.text.PartStyle;
 import com.wynntils.core.text.StyledText;
 import com.wynntils.utils.type.IterationDecision;
@@ -17,9 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +26,10 @@ public class StackDuplicateMessagesFeature extends Feature {
    @Default(State.DISABLED)
    @Tooltip("If enabled, timestamps from Wynntils will be ignored when checking for duplicate messages")
    private static boolean ignoreTimestamps = false;
+   @Value("Double Count Fix")
+   @Default(State.DISABLED)
+   @Tooltip("Enable this if duplicate message counts are incrementing by 2 instead of by 1")
+   private static boolean doubleCountFix = false;
 
    private static final String timestampPattern = "^(�8)?\\[[^A-z]*] ";
 
@@ -46,7 +46,7 @@ public class StackDuplicateMessagesFeature extends Feature {
          try {
             var hover = next.getPartStyle().getStyle().getHoverEvent();
             if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_ITEM) {
-               items.add(hover.getValue(HoverEvent.Action.SHOW_ITEM).getItemStack());
+               items.add(Objects.requireNonNull(hover.getValue(HoverEvent.Action.SHOW_ITEM)).getItemStack());
             }
          } catch (Exception ignored) {}
          return IterationDecision.CONTINUE;
@@ -70,7 +70,7 @@ public class StackDuplicateMessagesFeature extends Feature {
 
       newMsg = ignoreTimestamps ? newMsg.replaceAll(timestampPattern, "") : newMsg;
       if (latestMessage != null && newMsg.equals(latestMessage.original.getStringWithoutFormatting()) && itemsMatch) {
-         if (!duplicatedCall) {
+         if (!duplicatedCall || !doubleCountFix) {
             latestMessage.count++;
          }
          duplicatedCall = !duplicatedCall;
