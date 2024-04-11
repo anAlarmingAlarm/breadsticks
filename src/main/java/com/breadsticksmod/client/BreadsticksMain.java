@@ -32,7 +32,7 @@ public class BreadsticksMain implements ClientModInitializer, BreadsticksExtensi
 
    @Override
    public void onInitializeClient() {
-      ConfigurationBuilder builder = new ConfigurationBuilder();
+      ConfigurationBuilder builder = new ConfigurationBuilder(); //
 
       CONTAINER = FabricLoader.getInstance().getModContainer("breadsticks").orElseThrow(
               () -> new RuntimeException("no breadsticks...")
