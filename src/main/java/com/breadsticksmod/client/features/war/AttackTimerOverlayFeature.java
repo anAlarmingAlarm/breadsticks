@@ -46,7 +46,7 @@ public class AttackTimerOverlayFeature extends Feature {
    @Value("Background Color")
    private static Color background_color = Color.ofRGBA(0, 0, 0, 127);
 
-   private static List<Timer> ACTIVE_TIMERS = List.of();
+   public static List<Timer> ACTIVE_TIMERS = List.of();
 
    @SubscribeEvent()
    public void onScoreboardSegmentChange(ScoreboardSegmentAdditionEvent event) {

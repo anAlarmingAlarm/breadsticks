@@ -294,9 +294,9 @@ public class BreadsticksCommand {
                     .append(rank, AQUA)
                     .append(rank.equalsIgnoreCase("owner") ? " of " : " in ", GRAY)
                     .append(guild.name(), AQUA)
-                    .append(" [", GRAY)
+                    .append(" [", DARK_AQUA)
                     .append(guild.prefix(), AQUA)
-                    .append("].", GRAY);
+                    .append("].", DARK_AQUA);
          } else {
             builder = builder.append(". They are not in a guild.", GRAY);
          }
@@ -398,16 +398,18 @@ public class BreadsticksCommand {
 
       } else if (caughtTerrs.size() == 1) {
          builder = TextBuilder.of("Found ", GRAY)
-                 .append(" 1 ", AQUA)
+                 .append("1", AQUA)
                  .append(" territory:", GRAY);
          ChatUtil.message(builder);
 
          boolean highlightTime = caughtTerrs.get(0).getHeldFor().toMinutes() >= 10;
-         builder.append("| ", YELLOW)
+         builder = TextBuilder.of("| ", YELLOW)
                  .append(caughtTerrs.get(0).getName(), AQUA)
-                 .append(" is owned by [", GRAY)
+                 .append(" is owned by ", GRAY)
+                 .append("[", DARK_AQUA)
                  .append(caughtTerrs.get(0).getOwner().prefix(), AQUA)
-                 .append("] (", highlightTime ? DARK_AQUA : GRAY)
+                 .append("] ", DARK_AQUA)
+                 .append("(", highlightTime ? DARK_AQUA : GRAY)
                  .append(caughtTerrs.get(0).getHeldFor().toString(COMPACT, SECONDS), highlightTime ? AQUA : GRAY)
                  .append(")", highlightTime ? DARK_AQUA : GRAY)
                  .line();
@@ -424,9 +426,11 @@ public class BreadsticksCommand {
             boolean highlightTime = caughtTerr.getHeldFor().toMinutes() >= 10;
             builder.append("| ", YELLOW)
                     .append(caughtTerr.getName(), AQUA)
-                    .append(" is owned by [", GRAY)
+                    .append(" is owned by ", GRAY)
+                    .append("[", DARK_AQUA)
                     .append(caughtTerr.getOwner().prefix(), AQUA)
-                    .append("] (", highlightTime ? DARK_AQUA : GRAY)
+                    .append("] ", DARK_AQUA)
+                    .append("(", highlightTime ? DARK_AQUA : GRAY)
                     .append(caughtTerr.getHeldFor().toString(COMPACT, SECONDS), highlightTime ? AQUA : GRAY)
                     .append(")", highlightTime ? DARK_AQUA : GRAY)
                     .line();
@@ -538,6 +542,8 @@ public class BreadsticksCommand {
    private static void getPlayer(String string, Consumer<Player> consumer, boolean silent) {
       if (!silent) ChatUtil.message("Finding player %s...".formatted(string), GREEN);
 
-      new Player.Request(string).thenAccept(optional -> optional.ifPresentOrElse(consumer, () -> ChatUtil.message("Could not find player %s".formatted(string), RED)));
+      new Player.Request(string).thenAccept(optional -> optional.ifPresentOrElse(consumer, () -> {
+         if (!silent) ChatUtil.message("Could not find player %s".formatted(string), RED);
+      }));
    }
 }

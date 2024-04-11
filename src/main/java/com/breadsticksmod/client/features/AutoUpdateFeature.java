@@ -36,21 +36,23 @@ public class AutoUpdateFeature extends Feature {
 
    @Override
    protected void onInit() {
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-         File temp = getTempFile();
-         if (!temp.exists()) return;
-         else if (temp.isDirectory()) {
-            temp.delete();
-            return;
-         }
+      if (autoUpdate) {
+         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            File temp = getTempFile();
+            if (!temp.exists()) return;
+            else if (temp.isDirectory()) {
+               temp.delete();
+               return;
+            }
 
-         try {
-            FileUtils.copyFile(temp, BreadsticksMain.getJar());
-            temp.delete();
-         } catch (IOException e) {
-            throw new RuntimeException(e);
-         }
-      }));
+            try {
+               FileUtils.copyFile(temp, BreadsticksMain.getJar());
+               temp.delete();
+            } catch (IOException e) {
+               throw new RuntimeException(e);
+            }
+         }));
+      }
    }
 
    @SubscribeEvent

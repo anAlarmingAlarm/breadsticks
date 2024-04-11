@@ -1,10 +1,14 @@
 package com.breadsticksmod.client.features;
 
 import com.breadsticksmod.client.events.mc.chat.MessageAddEvent;
+import com.breadsticksmod.client.util.PlayerUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.State;
+import com.breadsticksmod.core.heartbeat.annotations.Schedule;
 import com.breadsticksmod.core.text.TextBuilder;
+import com.breadsticksmod.core.time.ChronoUnit;
+import com.wynntils.core.text.PartStyle;
 import com.wynntils.core.text.StyledText;
 import com.wynntils.utils.type.IterationDecision;
 import net.minecraft.ChatFormatting;
@@ -16,17 +20,27 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Default(State.ENABLED)
 @Feature.Definition(name = "Stack Duplicate Messages")
 public class StackDuplicateMessagesFeature extends Feature {
-   private static final Map<Integer, Entry> LATEST_MESSAGES = new HashMap<>();
+   @Value("Ignore Timestamps")
+   @Default(State.DISABLED)
+   @Tooltip("If enabled, timestamps from Wynntils will be ignored when checking for duplicate messages")
+   private static boolean ignoreTimestamps = false;
+
+   private static final String timestampPattern = "^(�8)?\\[[^A-z]*] ";
+
+   private static Entry latestMessage = null;
+
+   private static boolean duplicatedCall = false;
 
    @SubscribeEvent
-   public void onMessageAdd(MessageAddEvent event) {
-      int hash = System.identityHashCode(event.getChat());
+   public static void onMessageAdd(MessageAddEvent event) {
       List<ItemStack> items = new java.util.ArrayList<>(List.of());
-      Entry entry = LATEST_MESSAGES.get(hash);
+      String newMsg = event.getMessage().getStringWithoutFormatting();
 
       event.getMessage().iterate((next, changes) -> {
          try {
@@ -39,24 +53,35 @@ public class StackDuplicateMessagesFeature extends Feature {
       });
 
       boolean itemsMatch = true;
-      if (entry == null) {
+      if (latestMessage == null) {
          itemsMatch = false;
-      } else if (items.size() != entry.items.size()) {
-         itemsMatch = false;
-      } else {
-         for (int i = 0; i < items.size(); i++) {
-            if (!items.get(i).getTooltipLines(null, TooltipFlag.NORMAL).equals(entry.items.get(i).getTooltipLines(null, TooltipFlag.NORMAL))) {
-               itemsMatch = false;
-               break;
+      } else  {
+         if (items.size() != latestMessage.items.size()) {
+            itemsMatch = false;
+         } else {
+            for (int i = 0; i < items.size(); i++) {
+               if (!items.get(i).getTooltipLines(null, TooltipFlag.NORMAL).equals(latestMessage.items.get(i).getTooltipLines(null, TooltipFlag.NORMAL))) {
+                  itemsMatch = false;
+                  break;
+               }
             }
          }
       }
 
-      if (entry != null && entry.original.equals(event.getMessage()) && itemsMatch) {
-         entry.count++;
+      newMsg = ignoreTimestamps ? newMsg.replaceAll(timestampPattern, "") : newMsg;
+      if (latestMessage != null && newMsg.equals(latestMessage.original.getStringWithoutFormatting()) && itemsMatch) {
+         if (!duplicatedCall) {
+            latestMessage.count++;
+         }
+         duplicatedCall = !duplicatedCall;
 
-         event.getAllMessages().remove(0);
-         event.getTrimmedMessages().remove(0);
+         if (!event.getAllMessages().isEmpty()) {
+            event.getAllMessages().remove(0);
+         }
+
+         if (!event.getTrimmedMessages().isEmpty()) {
+            event.getTrimmedMessages().remove(0);
+         }
 
          for (var iter = event.getTrimmedMessages().iterator(); iter.hasNext(); ) {
             if (iter.next().endOfEntry()) break;
@@ -64,18 +89,24 @@ public class StackDuplicateMessagesFeature extends Feature {
          }
 
          event.setMessage(
-                 TextBuilder.of(entry.original)
-                         .append(entry.original.endsWith(" ") ? "" : " ")
-                         .append("(" + (entry.count + 1) + ")", ChatFormatting.GRAY)
+                 TextBuilder.of(event.getMessage())
+                         .append(event.getMessage().endsWith(" ") ? "" : " ")
+                         .append("(" + latestMessage.count + ")", ChatFormatting.GRAY)
          );
       } else {
-         LATEST_MESSAGES.put(hash, new Entry(event.getMessage(), items));
+         if (ignoreTimestamps) {
+            Matcher matcher = event.getMessage().getMatcher(Pattern.compile(timestampPattern), PartStyle.StyleType.NONE);
+            latestMessage = new Entry(StyledText.fromString(matcher.replaceFirst("")), items);
+         } else {
+            latestMessage = new Entry(event.getMessage(), items);
+         }
+         duplicatedCall = true;
       }
    }
 
    private static class Entry {
       private final StyledText original;
-      private int count = 0;
+      private int count = 1;
       public List<ItemStack> items;
 
       public Entry(StyledText original, List<ItemStack> items) {
