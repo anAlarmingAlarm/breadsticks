@@ -23,42 +23,34 @@ public class ShortenGuildRewardMessagesFeature extends Feature {
 
    @SubscribeEvent
    public void onChatMessage(ChatMessageReceivedEvent event) {
-      /* TO-DO: LOOK AT THE MESSAGES FOR THIS IN-GAME FIRST FOR STYLING
       StyledText message = event.getStyledText();
       Matcher matcher = message.getMatcher(TOME_FOUND_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
-         event.setMessage(TextBuilder.of(matcher.group("thrower"), ChatFormatting.AQUA)
-                 .append(" has thrown a ", ChatFormatting.DARK_AQUA)
-                 .append(toTitleCase(matcher.group("bomb")), ChatFormatting.AQUA)
-                 .append("!", ChatFormatting.DARK_AQUA)
+         event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
+                 .append("A ", ChatFormatting.AQUA)
+                 .append("Guild Tome ", ChatFormatting.DARK_AQUA)
+                 .append(" has been found and added to the Guild Rewards.", ChatFormatting.AQUA)
                  .toComponent());
          return;
       }
 
       matcher = message.getMatcher(TOME_REWARDED_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
-         event.setMessage(TextBuilder.of(matcher.group("thrower"), ChatFormatting.AQUA)
-                 .append("'s ", ChatFormatting.DARK_AQUA)
-                 .append(toTitleCase(matcher.group("bomb")), ChatFormatting.AQUA)
-                 .append(" has expired.", ChatFormatting.DARK_AQUA)
+         event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
+                 .append(matcher.group("rewarder") + " rewarded a ", ChatFormatting.AQUA)
+                 .append("Tome ", ChatFormatting.DARK_AQUA)
+                 .append("to " + matcher.group("recipient") + ".", ChatFormatting.AQUA)
                  .toComponent());
          return;
       }
 
       matcher = message.getMatcher(EMERALDS_REWARDED_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
-         event.setMessage(TextBuilder.of(matcher.group("thrower"), ChatFormatting.AQUA)
-                 .append("'s ", ChatFormatting.DARK_AQUA)
-                 .append("Party Bomb", ChatFormatting.AQUA)
-                 .append(" has expired.", ChatFormatting.DARK_AQUA)
+         event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
+                 .append(matcher.group("rewarder") + " rewarded ", ChatFormatting.AQUA)
+                 .append("1024 Emeralds ", ChatFormatting.DARK_AQUA)
+                 .append(" to " + matcher.group("recipient") + ".", ChatFormatting.AQUA)
                  .toComponent());
-      }*/
-   }
-
-   private String toTitleCase(String word) {
-      return Stream.of(word.split(" "))
-              .map(w -> w.toUpperCase().charAt(0) + w.substring(1))
-              .reduce((s, s2) -> s + " " + s2)
-              .orElse("");
+      }
    }
 }

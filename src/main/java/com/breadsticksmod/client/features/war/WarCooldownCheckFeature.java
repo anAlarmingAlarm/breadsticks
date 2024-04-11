@@ -28,39 +28,40 @@ import static net.minecraft.ChatFormatting.*;
 @Config.Category("War")
 @Feature.Definition(name = "Warn when Attempting to Join Wars while on Cooldown")
 public class WarCooldownCheckFeature extends Feature {
-   private static boolean sendWarning = false;
-   private static double minsUntilOffCd = 0;
+   private static boolean hasChecked = false;
+   private static double minsUntilOffCd = -1;
+   private static int ticksToNextWarning = -1;
 
    @SubscribeEvent
    public void onTick(TickEvent event) {
-      if (sendWarning) {
+      if (ticksToNextWarning == 0) {
          if (inTerr()) {
-            ChatUtil.send(TextBuilder.of("You are on war cooldown. You will be off cooldown in ", GRAY)
+            ChatUtil.message(TextBuilder.of("You are on war cooldown. You will be off cooldown in ", GRAY)
                     .append(Duration.of(minsUntilOffCd, MINUTES).toString(COMPACT, MINUTES), AQUA)
                     .append(".", GRAY));
-            sendWarning = false;
+            ticksToNextWarning = (20 * 60) * 30; // 30 minutes
          }
-      }
-   }
-
-   @SubscribeEvent
-   public void onJoinWorld(WorldStateEvent event) {
-      if (mc().player == null) return;
-      getPlayer(mc().player.getName().getString(), player -> {
-         if (player.guild().isPresent()) {
-            player.guild().map(GuildType::name).map(Guild.Request::new).orElseThrow().thenAccept(optional -> {
-               optional.ifPresent(guild -> {
-                  if (guild.contains(player)) {
-                     Guild.Member member = guild.get(player);
-                     minsUntilOffCd = Duration.of(3, DAYS).minus(Duration.since(member.joinedAt()).toDays(), DAYS).toMinutes();
-                     if (minsUntilOffCd > 0) {
-                        sendWarning = true;
+      } else if (ticksToNextWarning > 0) {
+         ticksToNextWarning--;
+      } else if (!hasChecked) {
+         if (mc().player == null) return;
+         getPlayer(mc().player.getName().getString(), player -> {
+            if (player.guild().isPresent()) {
+               player.guild().map(GuildType::name).map(Guild.Request::new).orElseThrow().thenAccept(optional -> {
+                  optional.ifPresent(guild -> {
+                     if (guild.contains(player)) {
+                        Guild.Member member = guild.get(player);
+                        minsUntilOffCd = Duration.of(3, DAYS).minus(Duration.since(member.joinedAt()).toDays(), DAYS).toMinutes();
+                        if (minsUntilOffCd > 0) {
+                           ticksToNextWarning = 0;
+                        }
                      }
-                  }
+                  });
                });
-            });
-         }
-      });
+            }
+         });
+         hasChecked = true;
+      }
    }
 
    private static boolean inTerr() {
@@ -78,11 +79,9 @@ public class WarCooldownCheckFeature extends Feature {
 
    @Schedule(rate = 1, unit = MINUTES)
    private void checkForCooldown() {
-      if (sendWarning) {
-         if (--minsUntilOffCd <= 0) {
-            ChatUtil.send(TextBuilder.of("You are no longer on war cooldown!", GRAY));
-            sendWarning = false;
-         }
+      if (--minsUntilOffCd == 0) {
+         ChatUtil.message(TextBuilder.of("You are no longer on war cooldown!", GRAY));
+         ticksToNextWarning = -1;
       }
    }
 }
