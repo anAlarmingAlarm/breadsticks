@@ -214,7 +214,7 @@ public class BreadsticksCommand {
                        .append(" is a ", GRAY).append(playerGuild.rank().prettyPrint(), AQUA)
                        .append(" in ", GRAY)
                        .append(playerGuild.name(), AQUA)
-                       .append("[", DARK_AQUA)
+                       .append(" [", DARK_AQUA)
                        .append(playerGuild.prefix(), AQUA)
                        .append("]", DARK_AQUA);
 
