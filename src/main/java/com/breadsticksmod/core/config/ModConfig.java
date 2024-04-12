@@ -1,6 +1,7 @@
 package com.breadsticksmod.core.config;
 
 import com.breadsticksmod.client.events.mc.MinecraftStopEvent;
+import com.breadsticksmod.client.features.AutoUpdateFeature;
 import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.Model;
@@ -170,11 +171,11 @@ public class ModConfig implements Buildable<Screen, ConfigBuilder> {
    public void open() {
       Managers.TickScheduler.scheduleNextTick(() -> mc().setScreen(CONFIG.build(mc().screen).build()));
    }
-
    @SubscribeEvent
    public static void onJoinWorld(WorldStateEvent event) {
       if (event.isFirstJoinWorld()) {
          CONFIG.load();
+         AutoUpdateFeature.THIS.checkForUpdate(event);
       }
    }
 

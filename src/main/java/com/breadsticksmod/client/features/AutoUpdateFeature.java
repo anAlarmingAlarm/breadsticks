@@ -27,15 +27,18 @@ import java.nio.file.StandardCopyOption;
 @Config.Category("Updates")
 @Feature.Definition(name = "Check for updates on startup")
 public class AutoUpdateFeature extends Feature {
+
    @Value("Auto Update")
    @Default(State.DISABLED)
    @Tooltip("If enabled, the mod will update itself on startup if a new version is available. Does nothing unless the above option is enabled.")
    private static boolean autoUpdate = false;
 
    private static final Path TEMP_DIRECTORY = FabricLoader.getInstance().getGameDir().resolve("temp").resolve("breadsticks-update.jar");
+   public static AutoUpdateFeature THIS;
 
    @Override
    protected void onInit() {
+      THIS = this;
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
          File temp = getTempFile();
          if (!temp.exists()) return;
@@ -53,11 +56,10 @@ public class AutoUpdateFeature extends Feature {
       }));
    }
 
-   @SubscribeEvent
-   public void onJoinWorld(WorldStateEvent event) {
+   public void checkForUpdate(WorldStateEvent event) {
       super.onJoinWorld(event);
 
-      if (!event.isFirstJoinWorld() || FabricLoader.getInstance().isDevelopmentEnvironment()) return;
+      if (!event.isFirstJoinWorld() || !THIS.isEnabled() || FabricLoader.getInstance().isDevelopmentEnvironment()) return;
 
       update(true).thenAccept(result -> {
          if (result == Result.ON_LATEST) return;
@@ -120,8 +122,8 @@ public class AutoUpdateFeature extends Feature {
 
    public enum Result {
       SUCCESSFUL("Successfully downloaded update, it will be applied on shutdown", ChatFormatting.GREEN),
+      AVAILABLE("Update available! Type '/bs update' to download it automatically", ChatFormatting.GREEN),
       ON_LATEST("Already on the latest version", ChatFormatting.YELLOW),
-      AVAILABLE("Update available! Type '/bs update' to download it automatically", ChatFormatting.YELLOW),
       DEV_ENV("Development environment detected, cancelling", ChatFormatting.RED),
       ERROR("Error occurred while checking for updates", ChatFormatting.RED);
 
