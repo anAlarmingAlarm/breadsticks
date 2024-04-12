@@ -29,7 +29,7 @@ public class ShortenGuildRewardMessagesFeature extends Feature {
          event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
                  .append("A ", ChatFormatting.AQUA)
                  .append("Guild Tome ", ChatFormatting.DARK_AQUA)
-                 .append(" has been found and added to the Guild Rewards.", ChatFormatting.AQUA)
+                 .append("has been found and added to the Guild Rewards.", ChatFormatting.AQUA)
                  .toComponent());
          return;
       }
@@ -49,7 +49,7 @@ public class ShortenGuildRewardMessagesFeature extends Feature {
          event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
                  .append(matcher.group("rewarder") + " rewarded ", ChatFormatting.AQUA)
                  .append("1024 Emeralds ", ChatFormatting.DARK_AQUA)
-                 .append(" to " + matcher.group("recipient") + ".", ChatFormatting.AQUA)
+                 .append("to " + matcher.group("recipient") + ".", ChatFormatting.AQUA)
                  .toComponent());
       }
    }

@@ -213,7 +213,10 @@ public class BreadsticksCommand {
                TextBuilder builder = TextBuilder.of(player.username(), AQUA)
                        .append(" is a ", GRAY).append(playerGuild.rank().prettyPrint(), AQUA)
                        .append(" in ", GRAY)
-                       .append(playerGuild.prettyPrint(), AQUA);
+                       .append(playerGuild.name(), AQUA)
+                       .append("[", DARK_AQUA)
+                       .append(playerGuild.prefix(), AQUA)
+                       .append("]", DARK_AQUA);
 
                optional.ifPresent(guild -> {
                   if (guild.contains(player)) {
