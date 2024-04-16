@@ -87,7 +87,7 @@ public class BreadsticksCommand {
                  .append(guild.size(), AQUA)
                  .append(" members online: ", GRAY)
                  .append(online, (member, b) -> b
-                                 .append(StringUtil.nCopies("\u2605", member.rank().countStars()) + member.username())
+                                 .append(StringUtil.nCopies("★", member.rank().countStars()) + member.username())
                                  .onPartHover(builder -> builder
                                          .append("Click to switch to ", GRAY)
                                          .append(member.world().orElseThrow(), WHITE)

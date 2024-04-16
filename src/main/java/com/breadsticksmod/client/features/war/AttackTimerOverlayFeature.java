@@ -26,6 +26,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.List;
 
+import static com.wynntils.utils.mc.McUtils.mc;
 import static net.minecraft.ChatFormatting.*;
 
 @Default(State.ENABLED)
@@ -45,6 +46,10 @@ public class AttackTimerOverlayFeature extends Feature {
    @Alpha
    @Value("Background Color")
    private static Color background_color = Color.ofRGBA(0, 0, 0, 127);
+
+   @Value("Show queuer names when holding Tab")
+   @Tooltip("Shows the username of the person who queued a territory beside its timer while holding Tab")
+   private static boolean showNames = false;
 
    public static List<Timer> ACTIVE_TIMERS = List.of();
 
@@ -79,19 +84,35 @@ public class AttackTimerOverlayFeature extends Feature {
       private void render(List<Timer> timers, float x, float y) {
          if (timers.isEmpty()) return;
 
-         new TextBox(builder -> builder.append(timers, timer -> builder
-                 .append(timer.getTerritory(), getColor(timer))
-                 .append(" (", RESET, GRAY)
-                 .append(timer.getDefense().toText(timer.isConfident()))
-                 .append("): ", RESET, GRAY)
-                 .append(format(timer.getRemaining()), RESET, AQUA))
-              , x, y).setTextStyle(style)
-              .setFill(background_color)
-              .with(this)
-              .setPadding(5, 5, 5, 5)
-              .setMaxWidth(getWidth())
-              .dynamic()
-              .build();
+         if (showNames && mc().options.keyPlayerList.isDown) {
+            new TextBox(builder -> builder.append(timers, timer -> builder
+                    .append(((timer.queuer.isEmpty()) ? "Unknown" : timer.queuer), ((timer.queuer.isEmpty()) ? new ChatFormatting[] {WHITE, ITALIC} : new ChatFormatting[]{WHITE}))
+                    .append(" - ", RESET, GRAY)
+                    .append(timer.getTerritory(), getColor(timer))
+                    .append(" (", RESET, GRAY)
+                    .append(timer.getDefense().toText(timer.isConfident()))
+                    .append("): ", RESET, GRAY)
+                    .append(format(timer.getRemaining()), RESET, AQUA))
+                    , x, y).setTextStyle(style)
+                    .setFill(background_color)
+                    .with(this)
+                    .setPadding(5, 5, 5, 5)
+                    .dynamic()
+                    .build();
+         } else {
+            new TextBox(builder -> builder.append(timers, timer -> builder
+                    .append(timer.getTerritory(), getColor(timer))
+                    .append(" (", RESET, GRAY)
+                    .append(timer.getDefense().toText(timer.isConfident()))
+                    .append("): ", RESET, GRAY)
+                    .append(format(timer.getRemaining()), RESET, AQUA))
+                    , x, y).setTextStyle(style)
+                    .setFill(background_color)
+                    .with(this)
+                    .setPadding(5, 5, 5, 5)
+                    .dynamic()
+                    .build();
+         }
       }
 
       private static ChatFormatting[] getColor(Timer timer) {

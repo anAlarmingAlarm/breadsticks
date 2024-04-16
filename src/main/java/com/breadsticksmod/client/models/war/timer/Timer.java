@@ -13,6 +13,8 @@ public final class Timer implements Comparable<Timer> {
    private final Duration timer;
    private final String owner;
 
+   public String queuer = "";
+
    boolean confident = false;
 
    boolean personal = false;

@@ -37,8 +37,8 @@ public class ShortenGuildRewardMessagesFeature extends Feature {
       matcher = message.getMatcher(TOME_REWARDED_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
          event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
-                 .append(matcher.group("rewarder") + " rewarded a ", ChatFormatting.AQUA)
-                 .append("Tome ", ChatFormatting.DARK_AQUA)
+                 .append(matcher.group("rewarder") + " rewarded ", ChatFormatting.AQUA)
+                 .append("a Tome ", ChatFormatting.DARK_AQUA)
                  .append("to " + matcher.group("recipient") + ".", ChatFormatting.AQUA)
                  .toComponent());
          return;
