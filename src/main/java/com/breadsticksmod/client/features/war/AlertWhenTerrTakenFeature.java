@@ -10,20 +10,18 @@ import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.State;
 import com.breadsticksmod.core.config.Config;
+import com.breadsticksmod.core.heartbeat.annotations.Schedule;
 import com.breadsticksmod.core.http.requests.mapstate.Territory;
 import com.breadsticksmod.core.text.TextBuilder;
+import com.breadsticksmod.core.time.ChronoUnit;
 import com.wynntils.core.components.Models;
-import com.wynntils.mc.event.TickEvent;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import static net.minecraft.ChatFormatting.RED;
 
@@ -57,9 +55,9 @@ public class AlertWhenTerrTakenFeature extends Feature {
 
    private static int timeSince = 2147483647;
 
-   @SubscribeEvent
-   public void onTick(TickEvent event) {
-      if (timeSince < cooldown * 20) timeSince++;
+   @Schedule(rate = 1, unit = ChronoUnit.SECONDS)
+   private void timer() {
+      if (timeSince < cooldown) timeSince++;
    }
 
    @SubscribeEvent
@@ -81,8 +79,8 @@ public class AlertWhenTerrTakenFeature extends Feature {
             return;
          }
       }
-      if (tcMatch || !alertForSpecificTerrs || alertTerrs.contains(event.getTerritory())) {
-         if (timeSince >= cooldown * 20) {
+      if (!alertForSpecificTerrs || tcMatch || (terrcheckFile.isEmpty() && alertTerrs.contains(event.getTerritory()))) {
+         if (timeSince >= cooldown) {
             SoundUtil.playAmbient(sound, pitch, volume);
          }
          timeSince = 0;

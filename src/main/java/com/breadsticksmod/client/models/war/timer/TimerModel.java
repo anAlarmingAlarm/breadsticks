@@ -1,9 +1,11 @@
 package com.breadsticksmod.client.models.war.timer;
 
+import com.breadsticksmod.client.features.RevealNicknamesFeature;
 import com.breadsticksmod.client.models.territory.TerritoryModel;
 import com.breadsticksmod.client.models.territory.events.TerritoryCapturedEvent;
 import com.breadsticksmod.client.models.war.Defense;
 import com.breadsticksmod.client.models.war.timer.events.TimerStartEvent;
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Model;
 import com.breadsticksmod.core.http.requests.mapstate.Territory;
 import com.breadsticksmod.core.heartbeat.annotations.Schedule;
@@ -15,12 +17,14 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.wynntils.core.components.Models;
 import com.wynntils.core.text.PartStyle;
+import com.wynntils.core.text.StyledText;
 import com.wynntils.handlers.chat.event.ChatMessageReceivedEvent;
 import com.wynntils.handlers.chat.type.RecipientType;
 import com.wynntils.mc.event.InventoryMouseClickedEvent;
 import com.wynntils.mc.event.TickEvent;
 import com.wynntils.models.territories.TerritoryAttackTimer;
 import com.wynntils.utils.mc.McUtils;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
@@ -31,12 +35,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TimerModel extends Model {
-   private final static Pattern ATTACK_PATTERN = Pattern.compile("^\\[WAR\\] The war for (?<territory>.+) will start in (?<timer>.+).$");
-   private final static Pattern DEFENSE_PATTERN = Pattern.compile("^\\[.*\\] (?<territory>.+) defense is (?<defense>.+)?$");
+   private final static Pattern ATTACK_PATTERN = Pattern.compile("^\\[WAR] The war for (?<territory>.+) will start in (?<timer>.+).$");
+   private final static Pattern DEFENSE_PATTERN = Pattern.compile("^\\[(?<queuer>.+)] (?<territory>.+) defense is (?<defense>.+)?$");
    private static final Pattern ATTACK_SCREEN_TITLE = Pattern.compile("Attacking: (?<territory>.+)");
 
    private final Multimap<String, Timer> TIMERS = MultimapBuilder.hashKeys().arrayListValues().build();
    private final Map<String, Defense> KNOWN_DEFENSES = new TempMap<>(10, ChronoUnit.SECONDS);
+   private final Map<String, String> KNOWN_QUEUERS = new TempMap<>(10, ChronoUnit.SECONDS);
 
 
    private final Set<String> PERSONALLY_QUEUED = new TempSet<>(10, ChronoUnit.SECONDS);
@@ -58,6 +63,10 @@ public class TimerModel extends Model {
          timer.defense = KNOWN_DEFENSES.get(timer.getTerritory());
          timer.confident = true;
       } else timer.defense = Defense.get(timer.getTerritory());
+
+      if (KNOWN_QUEUERS.containsKey(timer.getTerritory())) {
+         timer.queuer = KNOWN_QUEUERS.get(timer.getTerritory());
+      }
 
       if (PERSONALLY_QUEUED.contains(timer.getTerritory())) timer.personal = true;
 
@@ -86,15 +95,37 @@ public class TimerModel extends Model {
       Defense defense = Defense.from(matcher.group("defense"));
 
       KNOWN_DEFENSES.put(territory, defense);
+      KNOWN_QUEUERS.put(territory, getNickname(event.getStyledText()));
 
       for (Timer timer : TIMERS.get(territory)) {
-         if (!timer.confident && Duration.since(timer.getStart()).lessThan(300, ChronoUnit.MILLISECONDS)) {
-            timer.defense = defense;
-            timer.confident = true;
-
+         if (Duration.since(timer.getStart()).lessThan(300, ChronoUnit.MILLISECONDS)) {
+            if (!timer.confident) {
+               timer.defense = defense;
+               timer.confident = true;
+            }
+            if (timer.queuer.isEmpty()) {
+               timer.queuer = getNickname(event.getStyledText());
+            }
             break;
          }
       }
+   }
+
+   private String getNickname(StyledText msg) {
+      List<StyledText> textList = List.of(msg.getPartsAsTextArray());
+      for (StyledText text : textList) {
+         var hover = text.getFirstPart().getPartStyle().getStyle().getHoverEvent();
+         if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_TEXT && text.getFirstPart().getPartStyle().isItalic()) {
+            for (StyledText component : StyledText.fromComponent(hover.getValue(HoverEvent.Action.SHOW_TEXT)).split("\n")) {
+               Matcher matcher1 = component.getMatcher(RevealNicknamesFeature.NICK_REGEX, PartStyle.StyleType.NONE);
+               if (!matcher1.matches()) continue;
+
+               return matcher1.group("username");
+            }
+         }
+      }
+      Matcher matcher2 = msg.getMatcher(DEFENSE_PATTERN, PartStyle.StyleType.NONE);
+      return matcher2.group("queuer");
    }
 
    @SubscribeEvent
@@ -117,6 +148,7 @@ public class TimerModel extends Model {
       TIMERS.values().removeIf(timer -> timer.getRemaining().lessThanOrEqual(100, ChronoUnit.MILLISECONDS) ||
               !timer.getOwner().equals(TerritoryModel.getTerritoryList().get(timer.getTerritory()).getOwner().toString()));
       KNOWN_DEFENSES.size();
+      KNOWN_QUEUERS.size();
    }
 
    private Set<Integer> SCOREBOARD = new HashSet<>();
