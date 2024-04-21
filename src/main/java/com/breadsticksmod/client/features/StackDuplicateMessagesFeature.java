@@ -41,6 +41,10 @@ public class StackDuplicateMessagesFeature extends Feature {
    public static void onMessageAdd(MessageAddEvent event) {
       List<ItemStack> items = new java.util.ArrayList<>(List.of());
       String newMsg = event.getMessage().getStringWithoutFormatting();
+      if (newMsg.equals(" ")) {
+         latestMessage = null;
+         return;
+      }
 
       event.getMessage().iterate((next, changes) -> {
          try {
