@@ -360,6 +360,10 @@ public class BreadsticksCommand {
            String string,
            boolean byName
    ) {
+      if (TerritoryModel.getTerritoryList() == null) {
+         ChatUtil.message(TextBuilder.of("Failed to get territories", RED));
+         return;
+      }
       List<Territory> territories = new ArrayList<>(TerritoryModel.getTerritoryList().stream().toList());
       territories.sort(Comparator.comparing(territory -> territory.getName().toLowerCase()));
 
