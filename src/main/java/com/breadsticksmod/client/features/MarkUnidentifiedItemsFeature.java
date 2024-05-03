@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 import static com.wynntils.utils.mc.McUtils.mc;
 
-@Default(State.ENABLED)
+@Default(State.DISABLED)
 @Feature.Definition(name = "Mark Non-Boxed Unidentified Items")
 public class MarkUnidentifiedItemsFeature extends Feature {
    private static final Pattern UNID_PATTERN = Pattern.compile("^\\[Unidentified .+]");

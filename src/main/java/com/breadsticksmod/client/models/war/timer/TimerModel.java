@@ -120,9 +120,7 @@ public class TimerModel extends Model {
             for (StyledText component : StyledText.fromComponent(hover.getValue(HoverEvent.Action.SHOW_TEXT)).split("\n")) {
                matcher = component.getMatcher(RevealNicknamesFeature.NICK_REGEX, PartStyle.StyleType.NONE);
                if (!matcher.matches()) continue;
-
-               ChatUtil.send("returning ");
-               ChatUtil.send(matcher.group("username"));
+               
                return matcher.group("username");
             }
          }
