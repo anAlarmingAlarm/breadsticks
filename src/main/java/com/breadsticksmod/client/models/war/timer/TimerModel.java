@@ -36,7 +36,8 @@ import java.util.regex.Pattern;
 
 public class TimerModel extends Model {
    private final static Pattern ATTACK_PATTERN = Pattern.compile("^\\[WAR] The war for (?<territory>.+) will start in (?<timer>.+).$");
-   private final static Pattern DEFENSE_PATTERN = Pattern.compile("^\\[(?<queuer>.+)] (?<territory>.+) defense is (?<defense>.+)?$");
+   private final static Pattern DEFENSE_PATTERN = Pattern.compile("^\\[★*(?<queuer>.+)] (?<territory>.+) defense is (?<defense>.+)?$");
+   private final static Pattern STEAL_PATTERN = Pattern.compile("^\\[WAR] \\[(?<guild>.+)] captured the territory (?<territory>.+)\\.$");
    private static final Pattern ATTACK_SCREEN_TITLE = Pattern.compile("Attacking: (?<territory>.+)");
 
    private final Multimap<String, Timer> TIMERS = MultimapBuilder.hashKeys().arrayListValues().build();
@@ -77,14 +78,18 @@ public class TimerModel extends Model {
 
    @SubscribeEvent
    public void onMessage(ChatMessageReceivedEvent event) {
-      if (event.getRecipientType() != RecipientType.GUILD) return;
+      if (event.getRecipientType() == RecipientType.GUILD) {
+         onGuildMessage(event);
 
-      onGuildMessage(event);
+         Matcher matcher = event.getOriginalStyledText().getMatcher(ATTACK_PATTERN, PartStyle.StyleType.NONE);
+         if (!matcher.matches()) return;
 
-      Matcher matcher = event.getOriginalStyledText().getMatcher(ATTACK_PATTERN, PartStyle.StyleType.NONE);
-      if (!matcher.matches()) return;
-
-      Duration.parse(matcher.group("timer")).ifPresent(timer -> addTimer(matcher.group("territory"), timer, true));
+         Duration.parse(matcher.group("timer")).ifPresent(timer -> addTimer(matcher.group("territory"), timer, true));
+      } else {
+         Matcher matcher = event.getOriginalStyledText().getMatcher(STEAL_PATTERN, PartStyle.StyleType.NONE);
+         if (!matcher.matches()) return;
+         TIMERS.removeAll(matcher.group("territory"));
+      }
    }
 
    private void onGuildMessage(ChatMessageReceivedEvent event) {
@@ -95,7 +100,7 @@ public class TimerModel extends Model {
       Defense defense = Defense.from(matcher.group("defense"));
 
       KNOWN_DEFENSES.put(territory, defense);
-      KNOWN_QUEUERS.put(territory, getNickname(event.getStyledText()));
+      KNOWN_QUEUERS.put(territory, getNickname(event.getOriginalStyledText()));
 
       for (Timer timer : TIMERS.get(territory)) {
          if (Duration.since(timer.getStart()).lessThan(300, ChronoUnit.MILLISECONDS)) {
@@ -104,7 +109,7 @@ public class TimerModel extends Model {
                timer.confident = true;
             }
             if (timer.queuer.isEmpty()) {
-               timer.queuer = getNickname(event.getStyledText());
+               timer.queuer = getNickname(event.getOriginalStyledText());
             }
             break;
          }
@@ -112,20 +117,22 @@ public class TimerModel extends Model {
    }
 
    private String getNickname(StyledText msg) {
+      Matcher matcher;
       List<StyledText> textList = List.of(msg.getPartsAsTextArray());
       for (StyledText text : textList) {
          var hover = text.getFirstPart().getPartStyle().getStyle().getHoverEvent();
          if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_TEXT && text.getFirstPart().getPartStyle().isItalic()) {
             for (StyledText component : StyledText.fromComponent(hover.getValue(HoverEvent.Action.SHOW_TEXT)).split("\n")) {
-               Matcher matcher1 = component.getMatcher(RevealNicknamesFeature.NICK_REGEX, PartStyle.StyleType.NONE);
-               if (!matcher1.matches()) continue;
-
-               return matcher1.group("username");
+               matcher = component.getMatcher(RevealNicknamesFeature.NICK_REGEX, PartStyle.StyleType.NONE);
+               if (!matcher.matches()) continue;
+               
+               return matcher.group("username");
             }
          }
       }
-      Matcher matcher2 = msg.getMatcher(DEFENSE_PATTERN, PartStyle.StyleType.NONE);
-      return matcher2.group("queuer");
+      matcher = msg.getMatcher(DEFENSE_PATTERN, PartStyle.StyleType.NONE);
+      if (!matcher.matches()) return "";
+      return matcher.group("queuer");
    }
 
    @SubscribeEvent
@@ -160,20 +167,20 @@ public class TimerModel extends Model {
 
       for (TerritoryAttackTimer timer : Models.GuildAttackTimer.getAttackTimers()) {
          SCOREBOARD.add(hash(timer)); if (previous.contains(hash(timer))) continue;
-         addTimer(timer.territory(), Duration.of(timer.asSeconds(), ChronoUnit.SECONDS), false);
+         addTimer(timer.territoryName(), Duration.of(timer.asSeconds(), ChronoUnit.SECONDS), false);
       }
    }
 
    private static int hash(TerritoryAttackTimer timer) {
       return Objects.hash(
-              timer.territory(),
+              timer.territoryName(),
               timer.asSeconds()
       );
    }
 
    private static @Nullable String findBestMatch(String name) {
       Territory.List<?> list = TerritoryModel.getTerritoryList();
-      if (!list.isEmpty()) {
+      if (list != null && !list.isEmpty()) {
          if (list.contains(name)) return name;
 
          for (Territory territory : list) {

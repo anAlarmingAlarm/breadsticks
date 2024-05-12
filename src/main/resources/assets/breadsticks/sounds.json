@@ -28,5 +28,20 @@
     "sounds": [
       "breadsticks:home_depot_extended"
     ]
+  },
+  "flute": {
+    "sounds": [
+      "breadsticks:flute"
+    ]
+  },
+  "high.beep": {
+    "sounds": [
+      "breadsticks:high_beep"
+    ]
+  },
+  "low.beep": {
+    "sounds": [
+      "breadsticks:low_beep"
+    ]
   }
 }

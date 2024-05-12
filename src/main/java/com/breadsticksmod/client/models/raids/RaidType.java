@@ -48,7 +48,7 @@ public enum RaidType {
                     11928, 1463
             ),
            Room.empty(),
-           Room.label("Boss", ChatFormatting.GOLD, ChatFormatting.BOLD, ChatFormatting.UNDERLINE),
+           Room.label("Boss", ChatFormatting.AQUA, ChatFormatting.BOLD, ChatFormatting.UNDERLINE),
            Room.empty(),
            Room.title("Phase 1").string("The Parasite"),
            Room.title("Phase 2").string("D C")

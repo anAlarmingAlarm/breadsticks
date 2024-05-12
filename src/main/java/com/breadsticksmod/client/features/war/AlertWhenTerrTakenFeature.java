@@ -76,6 +76,7 @@ public class AlertWhenTerrTakenFeature extends Feature {
             return;
          } catch (Exception e) {
             ChatUtil.message(TextBuilder.of("Failed to open file", RED));
+            ChatUtil.message(e.getMessage());
             return;
          }
       }

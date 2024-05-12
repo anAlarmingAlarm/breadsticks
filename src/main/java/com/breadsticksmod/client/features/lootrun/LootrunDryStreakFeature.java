@@ -109,15 +109,15 @@ public class LootrunDryStreakFeature extends Feature {
       String name = ChatUtil.strip(stack.getHoverName().getString());
 
       if (INSTANCE.isEnabled())
-         ChatUtil.message(TextBuilder.of("You have found a", ChatFormatting.LIGHT_PURPLE)
+         ChatUtil.message(TextBuilder.of("You have found a", ChatFormatting.GRAY)
                  .appendIf(!name.isEmpty() && CharUtil.isVowel(name.charAt(0)), "n")
                  .space()
                  .append(stack)
                  .underline()
-                 .append(" after ", ChatFormatting.LIGHT_PURPLE)
+                 .append(" after ", ChatFormatting.GRAY)
                  .underline(false)
-                 .append(pull.pulls(), ChatFormatting.GOLD)
-                 .append(" pulls!", ChatFormatting.LIGHT_PURPLE));
+                 .append(pull.pulls(), ChatFormatting.AQUA)
+                 .append(" pulls!", ChatFormatting.GRAY));
    }
 
    @SubscribeEvent
@@ -146,11 +146,11 @@ public class LootrunDryStreakFeature extends Feature {
 
    private static void reset() {
       if (pos != null && (INSTANCE.isEnabled() && pullsSinceLastMythic != 0))
-            ChatUtil.message(TextBuilder.of("You've gone ", ChatFormatting.LIGHT_PURPLE)
-                    .append(pullsSinceLastMythic, ChatFormatting.GOLD)
-                    .append(" pulls without finding a ", ChatFormatting.LIGHT_PURPLE)
+            ChatUtil.message(TextBuilder.of("You've gone ", ChatFormatting.GRAY)
+                    .append(pullsSinceLastMythic, ChatFormatting.AQUA)
+                    .append(" pulls without finding a ", ChatFormatting.GRAY)
                     .append("Mythic", ChatFormatting.DARK_PURPLE)
-                    .append(".", ChatFormatting.LIGHT_PURPLE));
+                    .append(".", ChatFormatting.GRAY));
 
       pos = null;
       hasStarted = false;

@@ -95,7 +95,10 @@ public class BreadsticksMain implements ClientModInitializer, BreadsticksExtensi
               "breadsticks:alert",
               "breadsticks:alert.extended",
               "breadsticks:home.depot",
-              "breadsticks:home.depot.extended"
+              "breadsticks:home.depot.extended",
+              "breadsticks:flute",
+              "breadsticks:high.beep",
+              "breadsticks:low.beep"
       };
    }
 }

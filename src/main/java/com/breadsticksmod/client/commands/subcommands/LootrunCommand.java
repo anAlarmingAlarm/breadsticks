@@ -20,28 +20,28 @@ public class LootrunCommand {
 
    @Subcommand("drystreak")
    private static void onGetDryStreak(CommandContext<?> context) {
-      ChatUtil.message(TextBuilder.of("You've gone ", ChatFormatting.LIGHT_PURPLE)
-              .append(LootrunDryStreakFeature.dry(), ChatFormatting.GOLD)
-              .append(" pulls without finding a ", ChatFormatting.LIGHT_PURPLE)
+      ChatUtil.message(TextBuilder.of("You've gone ", ChatFormatting.GRAY)
+              .append(LootrunDryStreakFeature.dry(), ChatFormatting.AQUA)
+              .append(" pulls without finding a ", ChatFormatting.GRAY)
               .append("Mythic", ChatFormatting.DARK_PURPLE)
-              .append(".", ChatFormatting.LIGHT_PURPLE));
+              .append(".", ChatFormatting.GRAY));
    }
 
    @Subcommand("drystreak average")
    private static void onGetDryStreakAverage(CommandContext<?> context) {
       ChatUtil.message(
-              TextBuilder.of("You average ", ChatFormatting.LIGHT_PURPLE)
+              TextBuilder.of("You average ", ChatFormatting.GRAY)
                       .append(
                               (int) LootrunDryStreakFeature.pulls()
                                       .stream()
                                       .mapToInt(LootrunDryStreakFeature.Pull::pulls)
                                       .average()
                                       .orElse(0),
-                              ChatFormatting.GOLD
+                              ChatFormatting.AQUA
                       )
-                      .append(" pulls between ", ChatFormatting.LIGHT_PURPLE)
+                      .append(" pulls between ", ChatFormatting.GRAY)
                       .append("Mythics", ChatFormatting.DARK_PURPLE)
-                      .append(".", ChatFormatting.LIGHT_PURPLE)
+                      .append(".", ChatFormatting.GRAY)
       );
    }
 
@@ -75,9 +75,9 @@ public class LootrunCommand {
                          .center(prefixLength())
                          .line()
                          .line()
-                         .append("After ", ChatFormatting.LIGHT_PURPLE)
-                         .append(pull.pulls(), ChatFormatting.GOLD)
-                         .append(" pulls.", ChatFormatting.LIGHT_PURPLE)
+                         .append("After ", ChatFormatting.GRAY)
+                         .append(pull.pulls(), ChatFormatting.AQUA)
+                         .append(" pulls.", ChatFormatting.GRAY)
                          .center(prefixLength())
                          .line().line());
 

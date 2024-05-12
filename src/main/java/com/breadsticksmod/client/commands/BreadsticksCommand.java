@@ -87,7 +87,7 @@ public class BreadsticksCommand {
                  .append(guild.size(), AQUA)
                  .append(" members online: ", GRAY)
                  .append(online, (member, b) -> b
-                                 .append(StringUtil.nCopies("★", member.rank().countStars()) + member.username())
+                                 .append(StringUtil.nCopies("★", member.rank().countStars()) + member.username(), AQUA)
                                  .onPartHover(builder -> builder
                                          .append("Click to switch to ", GRAY)
                                          .append(member.world().orElseThrow(), WHITE)
@@ -316,8 +316,8 @@ public class BreadsticksCommand {
       ChatUtil.message(TextBuilder.of("The terrcheck command requires a guild prefix (or \"-\" for your own guild) along with a territory code as input.", GRAY));
       TextBuilder builder = TextBuilder.of("You can use this spreadsheet to generate a code.", AQUA, UNDERLINE)
               .onClick(ClickEvent.Action.OPEN_URL, "https://docs.google.com/spreadsheets/d/1zZhAEYI247FDhfx7j72muBX1xRWodsZGpIDG196mHnM/edit?usp=sharing");
-      ChatUtil.messageClean(builder);
-      ChatUtil.messageClean(TextBuilder.of("You can also use the terrcheckfile (tcf) command to do this automatically based on a file. Terrcheck files can be used from the breadsticks\\terrcheckfiles folder in your config folder; for more info, see the FFA.txt file in that directory.", GRAY));
+      ChatUtil.send(builder);
+      ChatUtil.send(TextBuilder.of("You can also use the terrcheckfile (tcf) command to do this automatically based on a file. Terrcheck files can be used from the breadsticks\\terrcheckfiles folder in your config folder; for more info, see the FFA.txt file in that directory.", GRAY));
    }
 
    @Alias("tc")
@@ -360,6 +360,10 @@ public class BreadsticksCommand {
            String string,
            boolean byName
    ) {
+      if (TerritoryModel.getTerritoryList() == null) {
+         ChatUtil.message(TextBuilder.of("Failed to get territories", RED));
+         return;
+      }
       List<Territory> territories = new ArrayList<>(TerritoryModel.getTerritoryList().stream().toList());
       territories.sort(Comparator.comparing(territory -> territory.getName().toLowerCase()));
 
@@ -416,7 +420,7 @@ public class BreadsticksCommand {
                  .append(caughtTerrs.get(0).getHeldFor().toString(COMPACT, SECONDS), highlightTime ? AQUA : GRAY)
                  .append(")", highlightTime ? DARK_AQUA : GRAY)
                  .line();
-         ChatUtil.messageClean(builder);
+         ChatUtil.send(builder);
 
       } else {
          builder = TextBuilder.of("Found ", GRAY)
@@ -438,7 +442,7 @@ public class BreadsticksCommand {
                     .append(")", highlightTime ? DARK_AQUA : GRAY)
                     .line();
          }
-         ChatUtil.messageClean(builder);
+         ChatUtil.send(builder);
       }
    }
 
@@ -507,7 +511,7 @@ public class BreadsticksCommand {
                  .line();
          Managers.TickScheduler.scheduleNextTick(() -> {
             ChatUtil.message(builder);
-            Managers.TickScheduler.scheduleNextTick(() -> ChatUtil.messageClean(builder2));
+            Managers.TickScheduler.scheduleNextTick(() -> ChatUtil.send(builder2));
          });
       });
    }
@@ -533,7 +537,7 @@ public class BreadsticksCommand {
               TextBuilder.of("You have entered ", GRAY)
                       .append(wars, AQUA)
                       .append(" war", GRAY).appendIf(() -> wars != 1, "s", GRAY)
-                      .append(" in the past ")
+                      .append(" in the past ", GRAY)
                       .append(range.toString(), AQUA).append(".", GRAY)
       );
    }

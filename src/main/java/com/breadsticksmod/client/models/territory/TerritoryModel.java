@@ -52,14 +52,24 @@ public class TerritoryModel extends Model {
          new TerritoryCapturedEvent(matcher.group("territory"), matcher.group("guild")).post();
    }
 
-
+   // Todo: adding this to try to stop random mass errors on game start; does it even work?
    @SubscribeEvent
    public static void onGameStart(MinecraftStartupEvent event) {
-      new Territory.Request().thenAccept(optional -> {
-         new MapUpdateEvent(optional.orElse(MapState.empty())).post();
+      onGameStartHelper(1);
+   }
 
-         THIS.ACTIVE_SOCKET = THIS.new Socket();
-      });
+   public static void onGameStartHelper(int tries) {
+      if (tries > 6) return;
+      try {
+         new Territory.Request().thenAccept(optional -> {
+            new MapUpdateEvent(optional.orElse(MapState.empty())).post();
+
+            THIS.ACTIVE_SOCKET = THIS.new Socket();
+         });
+      } catch (Exception e) {
+         LOGGER.warn("Failed to get map state, retrying in 10 seconds");
+         Heartbeat.schedule(() -> onGameStartHelper(tries + 1), 10, ChronoUnit.SECONDS);
+      }
    }
 
    @SubscribeEvent(priority = EventPriority.LOWEST)
