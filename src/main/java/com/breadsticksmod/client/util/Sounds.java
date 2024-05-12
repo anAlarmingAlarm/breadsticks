@@ -9,4 +9,7 @@ public interface Sounds {
    SoundEvent ALERT_EXTENDED = SoundUtil.create("breadsticks:alert.extended");
    SoundEvent HOME_DEPOT = SoundUtil.create("breadsticks:home.depot");
    SoundEvent HOME_DEPOT_EXTENDED = SoundUtil.create("breadsticks:home.depot.extended");
+   SoundEvent FLUTE = SoundUtil.create("breadsticks:flute");
+   SoundEvent HIGH_BEEP = SoundUtil.create("breadsticks:high.beep");
+   SoundEvent LOW_BEEP = SoundUtil.create("breadsticks:low.beep");
 }

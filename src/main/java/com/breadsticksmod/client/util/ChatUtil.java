@@ -76,20 +76,6 @@ public class ChatUtil {
               sendMessageToClient(text.isBlank() ? Component.empty() : create(text.getComponent())));
    }
 
-
-   public static void messageClean(TextBuilder message) {
-      messageClean(message.build());
-   }
-
-
-   public static void messageClean(StyledText message) {
-      if (mc().player == null) return;
-
-      FontRenderer.split(message, 0).forEach(text ->
-              sendMessageToClient(text.isBlank() ? Component.empty() : createClean(text.getComponent())));
-   }
-
-
    public static void message(Component message) {
       message(StyledText.fromComponent(message));
    }

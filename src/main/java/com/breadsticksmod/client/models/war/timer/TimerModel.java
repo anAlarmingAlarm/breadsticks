@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 public class TimerModel extends Model {
    private final static Pattern ATTACK_PATTERN = Pattern.compile("^\\[WAR] The war for (?<territory>.+) will start in (?<timer>.+).$");
    private final static Pattern DEFENSE_PATTERN = Pattern.compile("^\\[★*(?<queuer>.+)] (?<territory>.+) defense is (?<defense>.+)?$");
+   private final static Pattern STEAL_PATTERN = Pattern.compile("^\\[WAR] \\[(?<guild>.+)] captured the territory (?<territory>.+)\\.$");
    private static final Pattern ATTACK_SCREEN_TITLE = Pattern.compile("Attacking: (?<territory>.+)");
 
    private final Multimap<String, Timer> TIMERS = MultimapBuilder.hashKeys().arrayListValues().build();
@@ -77,14 +78,18 @@ public class TimerModel extends Model {
 
    @SubscribeEvent
    public void onMessage(ChatMessageReceivedEvent event) {
-      if (event.getRecipientType() != RecipientType.GUILD) return;
+      if (event.getRecipientType() == RecipientType.GUILD) {
+         onGuildMessage(event);
 
-      onGuildMessage(event);
+         Matcher matcher = event.getOriginalStyledText().getMatcher(ATTACK_PATTERN, PartStyle.StyleType.NONE);
+         if (!matcher.matches()) return;
 
-      Matcher matcher = event.getOriginalStyledText().getMatcher(ATTACK_PATTERN, PartStyle.StyleType.NONE);
-      if (!matcher.matches()) return;
-
-      Duration.parse(matcher.group("timer")).ifPresent(timer -> addTimer(matcher.group("territory"), timer, true));
+         Duration.parse(matcher.group("timer")).ifPresent(timer -> addTimer(matcher.group("territory"), timer, true));
+      } else {
+         Matcher matcher = event.getOriginalStyledText().getMatcher(STEAL_PATTERN, PartStyle.StyleType.NONE);
+         if (!matcher.matches()) return;
+         TIMERS.removeAll(matcher.group("territory"));
+      }
    }
 
    private void onGuildMessage(ChatMessageReceivedEvent event) {
@@ -162,13 +167,13 @@ public class TimerModel extends Model {
 
       for (TerritoryAttackTimer timer : Models.GuildAttackTimer.getAttackTimers()) {
          SCOREBOARD.add(hash(timer)); if (previous.contains(hash(timer))) continue;
-         addTimer(timer.territory(), Duration.of(timer.asSeconds(), ChronoUnit.SECONDS), false);
+         addTimer(timer.territoryName(), Duration.of(timer.asSeconds(), ChronoUnit.SECONDS), false);
       }
    }
 
    private static int hash(TerritoryAttackTimer timer) {
       return Objects.hash(
-              timer.territory(),
+              timer.territoryName(),
               timer.asSeconds()
       );
    }

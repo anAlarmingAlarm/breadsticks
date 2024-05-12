@@ -186,10 +186,10 @@ public class TerritoryHelperMenuFeature extends Feature {
 
    @SubscribeEvent
    public void onRenderSlot(SlotRenderEvent.Post e) {
-      if (showOnesInLevels && TOWER_MENU) drawTextOverlay(e.getPoseStack(), e.getSlot().getItem(), e.getSlot().x, e.getSlot().y, false);
+      if (showOnesInLevels && TOWER_MENU) drawTextOverlay(e.getPoseStack(), e.getSlot().getItem(), e.getSlot().x, e.getSlot().y);
    }
 
-   private void drawTextOverlay(PoseStack poseStack, ItemStack itemStack, int slotX, int slotY, boolean hotbar) {
+   private void drawTextOverlay(PoseStack poseStack, ItemStack itemStack, int slotX, int slotY) {
       if (LV1_PATTERN.matcher(ChatUtil.strip(itemStack.getDisplayName())).find()) {
          TextOverlay textOverlay = UpgradeOverlay.getTextOverlay();
          if (textOverlay == null) return;
