@@ -25,7 +25,6 @@ import com.wynntils.utils.render.TextRenderTask;
 import com.wynntils.utils.render.type.HorizontalAlignment;
 import com.wynntils.utils.render.type.TextShadow;
 import com.wynntils.utils.render.type.VerticalAlignment;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -186,22 +185,22 @@ public class TerritoryHelperMenuFeature extends Feature {
 
    @SubscribeEvent
    public void onRenderSlot(SlotRenderEvent.Post e) {
-      if (showOnesInLevels && TOWER_MENU) drawTextOverlay(e.getPoseStack(), e.getSlot().getItem(), e.getSlot().x, e.getSlot().y);
+      if (showOnesInLevels && TOWER_MENU && LV1_PATTERN.matcher(ChatUtil.strip(e.getSlot().getItem().getDisplayName())).find()) {
+         drawTextOverlay(e.getPoseStack(), e.getSlot().x, e.getSlot().y);
+      }
    }
 
-   private void drawTextOverlay(PoseStack poseStack, ItemStack itemStack, int slotX, int slotY) {
-      if (LV1_PATTERN.matcher(ChatUtil.strip(itemStack.getDisplayName())).find()) {
-         TextOverlay textOverlay = UpgradeOverlay.getTextOverlay();
-         if (textOverlay == null) return;
+   private void drawTextOverlay(PoseStack poseStack, int slotX, int slotY) {
+      TextOverlay textOverlay = UpgradeOverlay.getTextOverlay();
+      if (textOverlay == null) return;
 
-         poseStack.pushPose();
-         poseStack.translate(0, 0, 300); // items are drawn at z300, so text has to be as well
-         poseStack.scale(1, 1, 1);
-         float x = slotX + 11;
-         float y = slotY + 9;
-         FontRenderer.getInstance().renderText(poseStack, x, y, new TextRenderTask("1", TextRenderSetting.DEFAULT.withTextShadow(TextShadow.NORMAL)));
-         poseStack.popPose();
-      }
+      poseStack.pushPose();
+      poseStack.translate(0, 0, 300); // items are drawn at z300, so text has to be as well
+      poseStack.scale(1, 1, 1);
+      float x = slotX + 11;
+      float y = slotY + 9;
+      FontRenderer.getInstance().renderText(poseStack, x, y, new TextRenderTask("1", TextRenderSetting.DEFAULT.withTextShadow(TextShadow.NORMAL)));
+      poseStack.popPose();
    }
 
    public static class UpgradeOverlay extends TextOverlay {

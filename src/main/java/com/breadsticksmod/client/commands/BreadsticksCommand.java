@@ -14,9 +14,7 @@ import com.breadsticksmod.core.http.api.player.StoreRank;
 import com.breadsticksmod.core.http.requests.mapstate.Territory;
 import com.breadsticksmod.core.http.requests.serverlist.ServerList;
 import com.breadsticksmod.core.text.TextBuilder;
-import com.breadsticksmod.core.time.ChronoUnit;
 import com.breadsticksmod.core.time.Duration;
-import com.breadsticksmod.core.time.FormatFlag;
 import com.breadsticksmod.core.tuples.Pair;
 import com.breadsticksmod.core.util.StringUtil;
 import com.breadsticksmod.core.util.iterators.Iter;
@@ -31,15 +29,13 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import com.mojang.brigadier.context.CommandContext;
 import com.wynntils.core.components.Managers;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static com.breadsticksmod.client.BreadsticksMain.CONFIG;
@@ -47,7 +43,6 @@ import static com.breadsticksmod.core.time.ChronoUnit.MINUTES;
 import static com.breadsticksmod.core.time.ChronoUnit.SECONDS;
 import static com.breadsticksmod.core.time.FormatFlag.COMPACT;
 import static com.mojang.brigadier.arguments.StringArgumentType.StringType.GREEDY_PHRASE;
-import static com.wynntils.utils.mc.McUtils.player;
 import static net.minecraft.ChatFormatting.*;
 
 @Alias("bs")
@@ -454,6 +449,134 @@ public class BreadsticksCommand {
       }
    }
 
+   @Alias("tl")
+   @Subcommand("terrleaderboard")
+   private static void terrLeaderboard(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      try {
+         List<Territory> territories = new ArrayList<>(TerritoryModel.getTerritoryList().stream().toList());
+         HashMap<Territory.Owner, Integer> owners = new HashMap<>();
+         territories.forEach(territory -> owners.put(territory.getOwner(), owners.getOrDefault(territory.getOwner(), 0) + 1));
+
+         ArrayList<Integer> list = new ArrayList<>();
+         LinkedHashMap<Territory.Owner, Integer> sortedMap = new LinkedHashMap<>();
+         for (Map.Entry<Territory.Owner, Integer> entry : owners.entrySet()) {
+            list.add(entry.getValue());
+         }
+         list.sort(Collections.reverseOrder());
+         for (int num : list) {
+            for (Map.Entry<Territory.Owner, Integer> entry : owners.entrySet()) {
+               if (entry.getValue().equals(num)) {
+                  sortedMap.put(entry.getKey(), num);
+               }
+            }
+         }
+
+         AtomicInteger place = new AtomicInteger(0);
+         AtomicInteger total = new AtomicInteger(0);
+         sortedMap.values().forEach(total::addAndGet);
+         if (sortedMap.values().isEmpty()) {
+            ChatUtil.message(TextBuilder.of("There are ", GRAY)
+                    .append("0", AQUA)
+                    .append(" guilds with ", GRAY)
+                    .append(total.get(), AQUA)
+                    .append(" territor" + (total.get() == 1 ? "y" : "ies") + " total.", GRAY));
+            return;
+         } else if (sortedMap.values().size() == 1) {
+            ChatUtil.message(TextBuilder.of("There is ", GRAY)
+                    .append("1", AQUA)
+                    .append(" guild with ", GRAY)
+                    .append(total.get(), AQUA)
+                    .append(" territor" + (total.get() == 1 ? "y" : "ies") + " total:", GRAY));
+         } else {
+            ChatUtil.message(TextBuilder.of("There are ", GRAY)
+                    .append(sortedMap.values().size(), AQUA)
+                    .append(" guilds with ", GRAY)
+                    .append(total.get(), AQUA)
+                    .append(" territor" + (total.get() == 1 ? "y" : "ies") + " total:", GRAY));
+         }
+         sortedMap.forEach(((owner, integer) -> {
+            TextBuilder builder = TextBuilder.of("| ", YELLOW)
+                    .append(place.incrementAndGet(), AQUA)
+                    .append(". ", DARK_AQUA)
+                    .append(owner.name(), AQUA)
+                    .append(" [", DARK_AQUA)
+                    .append(owner.prefix(), AQUA)
+                    .append("] ", DARK_AQUA)
+                    .append("has ", GRAY)
+                    .append(integer, AQUA)
+                    .append(" territor" + (integer == 1 ? "y " : "ies "), GRAY)
+                    .append("(", DARK_AQUA)
+                    .append(((float) Math.round((float) integer / total.get() * 100 * 100) / 100) + "%", AQUA)
+                    .append(")", DARK_AQUA)
+                    .line();
+            ChatUtil.send(builder);
+         }));
+      } catch (NullPointerException e) {
+         ChatUtil.message("Could not find territories", RED);
+      } catch (Exception e) {
+         ChatUtil.message("An error occurred", RED);
+      }
+   }
+
+   @Alias("dr")
+   @Subcommand("dailyreset")
+   private static void dailyReset(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      Date date = new Date();
+      Date resetDate = new Date();
+      resetDate.setHours(4 - resetDate.getTimezoneOffset() / 60);
+      resetDate.setMinutes(0);
+      resetDate.setSeconds(0);
+      if (resetDate.before(date)) {
+         resetDate.setDate(resetDate.getDate() + 1);
+      }
+      Duration timeBetween = Duration.of(date, resetDate);
+      ChatUtil.message(TextBuilder.of("The next daily objective reset is in ", GRAY)
+              .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
+              .append(".", GRAY));
+   }
+
+   @Alias("wr")
+   @Subcommand("weeklyreset")
+   private static void weeklyReset(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      Date date = new Date();
+      Date resetDate = new Date();
+      resetDate.setHours(4 - resetDate.getTimezoneOffset() / 60);
+      resetDate.setMinutes(0);
+      resetDate.setSeconds(0);
+      while (resetDate.getDay() != 1 || resetDate.before(date)) {
+         resetDate.setDate(resetDate.getDate() + 1);
+      }
+      Duration timeBetween = Duration.of(date, resetDate);
+      ChatUtil.message(TextBuilder.of("The next weekly objective reset is in ", GRAY)
+              .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
+              .append(".", GRAY));
+   }
+
+   @Alias("lr")
+   @Subcommand("lootpoolreset")
+   private static void lootpoolReset(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      Date date = new Date();
+      Date resetDate = new Date();
+      resetDate.setHours(18 - resetDate.getTimezoneOffset() / 60);
+      resetDate.setMinutes(0);
+      resetDate.setSeconds(0);
+      while (resetDate.getDay() != 5 || resetDate.before(date)) {
+         resetDate.setDate(resetDate.getDate() + 1);
+      }
+      Duration timeBetween = Duration.of(date, resetDate);
+      ChatUtil.message(TextBuilder.of("The next lootpool reset is in ", GRAY)
+              .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
+              .append(".", GRAY));
+   }
+
    @Alias("up")
    @Subcommand("uptime")
    private static void getServerUptime(
@@ -470,7 +593,7 @@ public class BreadsticksCommand {
          TextBuilder builder = TextBuilder.of("World ", GRAY)
                  .append(finalServer, AQUA)
                  .append(" has been online for ", GRAY)
-                 .append(servers.get(String.valueOf(finalServer)).getUptime().toString(COMPACT, SECONDS), AQUA)
+                 .append(servers.get(finalServer).getUptime().toString(COMPACT, SECONDS), AQUA)
                  .append(".", GRAY);
 
          ChatUtil.message(builder);
@@ -538,7 +661,47 @@ public class BreadsticksCommand {
                       .append(wars, AQUA)
                       .append(" war", GRAY).appendIf(() -> wars != 1, "s", GRAY)
                       .append(" in the past ", GRAY)
-                      .append(range.toString(), AQUA).append(".", GRAY)
+                      .append(range.toString(COMPACT), AQUA).append(".", GRAY)
+      );
+   }
+
+   private static final Date seasonStartDate = new Date(2024 - 1900, Calendar.APRIL, 26, 19, 0);
+   private static final Date seasonEndDate = new Date(2024 - 1900, Calendar.JUNE, 18, 0, 0);
+   private static final int season = 18;
+   @Alias("swars")
+   @Subcommand("seasonwars")
+   private static void getSeasonWars(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      Date date = new Date();
+      Date startDate = new Date(seasonStartDate.toString());
+      Date endDate = new Date(seasonEndDate.toString());
+      startDate.setHours(startDate.getHours() - date.getTimezoneOffset() / 60);
+      endDate.setHours(endDate.getHours() - date.getTimezoneOffset() / 60);
+      if (startDate.after(date)) {
+         ChatUtil.message("Season " + season + " hasn't started yet. If this doesn't seem right, message anAlarmingAlarm.", GRAY);
+         return;
+      }
+      if (endDate.before(date)) {
+         ChatUtil.message("Season " + season + " has ended. If there is a new season and you aren't on the latest version, please update by typing /bs update. If you are on the latest version, message anAlarmingAlarm.", GRAY);
+         return;
+      }
+      Duration start = Duration.of(startDate, date);
+      Duration end = Duration.of(date, endDate);
+      long wars = WeeklyWarCountOverlay.getWars()
+              .stream()
+              .filter(war -> Duration.since(war).lessThanOrEqual(start))
+              .count();
+
+      ChatUtil.message(
+              TextBuilder.of("You have entered ", GRAY)
+                      .append(wars, AQUA)
+                      .append(" war", GRAY).appendIf(() -> wars != 1, "s", GRAY)
+                      .append(" in the past ", GRAY)
+                      .append(start.toString(COMPACT, SECONDS), AQUA)
+                      .append(". The season ends in ", GRAY)
+                      .append(end.toString(COMPACT, SECONDS), AQUA)
+                      .append(".", GRAY)
       );
    }
 

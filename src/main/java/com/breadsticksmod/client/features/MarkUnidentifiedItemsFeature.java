@@ -1,5 +1,6 @@
 package com.breadsticksmod.client.features;
 
+import com.breadsticksmod.client.config.providers.text.ShadowProvider;
 import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
@@ -25,6 +26,17 @@ import static com.wynntils.utils.mc.McUtils.mc;
 @Default(State.DISABLED)
 @Feature.Definition(name = "Mark Non-Boxed Unidentified Items")
 public class MarkUnidentifiedItemsFeature extends Feature {
+   @Value("Show text in bottom-right")
+   @Tooltip("Show the ? text in the bottom-right corner instead of the center of the item")
+   private static boolean cornerText = false;
+
+   @Value("Color text purple")
+   @Tooltip("Colors the ? light purple instead of white")
+   private static boolean porpl = true;
+
+   @Dropdown(title = "Text shadow", options = ShadowProvider.class)
+   private TextShadow textShadow = TextShadow.OUTLINE;
+
    private static final Pattern UNID_PATTERN = Pattern.compile("^\\[Unidentified .+]");
 
    @SubscribeEvent
@@ -56,9 +68,13 @@ public class MarkUnidentifiedItemsFeature extends Feature {
       poseStack.pushPose();
       poseStack.translate(0, 0, 300); // items are drawn at z300, so text has to be as well
       poseStack.scale(1, 1, 1);
-      float x = slotX + 5;
-      float y = slotY + 5;
-      FontRenderer.getInstance().renderText(poseStack, x, y, new TextRenderTask("?", TextRenderSetting.DEFAULT.withTextShadow(TextShadow.OUTLINE).withCustomColor(CustomColor.fromChatFormatting(ChatFormatting.LIGHT_PURPLE))));
+      float x = slotX + (cornerText ? 11 : 5);
+      float y = slotY + (cornerText ? 9 : 5);
+      FontRenderer.getInstance().renderText(poseStack, x, y, new TextRenderTask(
+              "?",
+              TextRenderSetting.DEFAULT
+                      .withTextShadow(textShadow)
+                      .withCustomColor(CustomColor.fromChatFormatting((porpl ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.WHITE)))));
       poseStack.popPose();
    }
 }

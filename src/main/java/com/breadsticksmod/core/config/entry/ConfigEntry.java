@@ -194,8 +194,6 @@ public abstract class ConfigEntry<T> extends Annotated implements Buildable<Conf
    }
 
    public void load(Toml object) {
-      // to-do: on first config load it just does everything with default settings; why?
-      // System.out.println("breadsticks: " + getCategory() + " " + getSection() + " " + getKey() + " " + getDefault());
       if (!object.containsKey(getKey())) return;
 
       T result = from(object);
