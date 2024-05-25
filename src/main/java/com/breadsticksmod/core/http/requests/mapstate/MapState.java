@@ -138,11 +138,6 @@ public class MapState extends BaseModel implements Territory.List<Territory> {
       }
 
       @Override
-      public int countTerritories() {
-         return owned;
-      }
-
-      @Override
       public void setOwned(int owned) {
          this.owned = owned;
       }

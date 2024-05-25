@@ -90,11 +90,6 @@ public interface Territory {
          }
 
          @Override
-         public int countTerritories() {
-            return owned;
-         }
-
-         @Override
          public void setOwned(int owned) {
             this.owned = owned;
          }

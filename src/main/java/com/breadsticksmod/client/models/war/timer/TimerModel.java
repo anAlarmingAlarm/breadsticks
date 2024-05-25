@@ -179,12 +179,12 @@ public class TimerModel extends Model {
    }
 
    private static @Nullable String findBestMatch(String name) {
-      Territory.List<?> list = TerritoryModel.getTerritoryList();
+      List<String> list = TerritoryModel.TERRITORIES;
       if (list != null && !list.isEmpty()) {
          if (list.contains(name)) return name;
 
-         for (Territory territory : list) {
-            if (territory.getName().startsWith(name)) return territory.getName();
+         for (String territory : list) {
+            if (territory.startsWith(name)) return territory;
          }
       }
 
