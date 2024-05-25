@@ -3,6 +3,7 @@ package com.breadsticksmod.client.commands;
 import com.breadsticksmod.client.commands.subcommands.LootrunCommand;
 import com.breadsticksmod.client.features.AutoStreamFeature;
 import com.breadsticksmod.client.features.AutoUpdateFeature;
+import com.breadsticksmod.client.features.BombBellFeature;
 import com.breadsticksmod.client.features.war.WeeklyWarCountOverlay;
 import com.breadsticksmod.client.models.territory.TerritoryModel;
 import com.breadsticksmod.client.util.ChatUtil;
@@ -13,6 +14,7 @@ import com.breadsticksmod.core.http.api.player.Player;
 import com.breadsticksmod.core.http.api.player.StoreRank;
 import com.breadsticksmod.core.http.requests.mapstate.Territory;
 import com.breadsticksmod.core.http.requests.serverlist.ServerList;
+import com.breadsticksmod.core.http.requests.serverlist.World;
 import com.breadsticksmod.core.text.TextBuilder;
 import com.breadsticksmod.core.time.Duration;
 import com.breadsticksmod.core.tuples.Pair;
@@ -24,7 +26,9 @@ import com.essentuan.acf.core.annotations.Command;
 import com.essentuan.acf.core.annotations.Inherit;
 import com.essentuan.acf.core.annotations.Subcommand;
 import com.essentuan.acf.core.command.arguments.builtin.primitaves.String.StringType;
+import com.wynntils.core.components.Handlers;
 import com.wynntils.core.components.Models;
+import com.wynntils.models.worlds.type.BombType;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import com.mojang.brigadier.context.CommandContext;
 import com.wynntils.core.components.Managers;
@@ -35,6 +39,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -164,6 +169,147 @@ public class BreadsticksCommand {
                  .onClick(ClickEvent.Action.RUN_COMMAND, "/switch " + pair.one().getWorld()));
 
          Managers.TickScheduler.scheduleNextTick(() -> ChatUtil.message(builder));
+      });
+   }
+
+   private static final List<String> serverTypes = List.of("any", "recent", "dxp", "dloot", "dungeon", "pxp", "pspd", "profs");
+   @Subcommand("switch")
+   private static void serverSwitch(
+           CommandContext<FabricClientCommandSource> context,
+           @Argument("Types") @StringType(GREEDY_PHRASE) String string
+   ) {
+      List<String> types = List.of(string.split(" "));
+      for (String type : types) {
+         if (!serverTypes.contains(type)) {
+            TextBuilder builder = TextBuilder.of("Server type " + type + " is not a valid type. Valid types include: ", RED);
+            for (int i = 0; i < serverTypes.size(); i++) {
+               builder.append(serverTypes.get(i) + (i + 1 != serverTypes.size() ? ", " : ""), RED);
+            }
+            ChatUtil.message(builder);
+            return;
+         }
+      }
+      new ServerList.Request().thenApply(Optional::orElseThrow).thenAccept(servers -> {
+         for (String type : types) {
+            AtomicBoolean exit = new AtomicBoolean(false);
+            List<String> bombServers;
+            switch (type) {
+               case "any":
+                  servers.stream()
+                          .filter(world -> !world.getWorld().isBlank() && world.size() < 40)
+                          .limit(1)
+                          .forEach(world -> {
+                             Handlers.Command.queueCommand("switch " + world);
+                             exit.set(true);
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any servers that aren't full", GRAY);
+                  break;
+               case "recent":
+                  servers.stream()
+                          .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && world.getUptime().toHours() <= 2)
+                          .sorted(Comparator.comparing(World::getUptime))
+                          .limit(1)
+                          .forEach(world -> {
+                             Handlers.Command.queueCommand("switch " + world);
+                             exit.set(true);
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any servers started in the last 2 hours that aren't full", GRAY);
+                  break;
+               case "dxp":
+                  bombServers = new ArrayList<>();
+                  BombBellFeature.ACTIVE_BOMBS.stream()
+                          .filter(bombInfo -> bombInfo.bomb() == BombType.COMBAT_XP)
+                          .forEach(bombInfo -> bombServers.add(bombInfo.server()));
+                  servers.stream()
+                          .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .limit(1)
+                          .forEach(world -> {
+                             Handlers.Command.queueCommand("switch " + world);
+                             exit.set(true);
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any double xp servers that aren't full", GRAY);
+                  break;
+               case "dloot":
+                  bombServers = new ArrayList<>();
+                  BombBellFeature.ACTIVE_BOMBS.stream()
+                          .filter(bombInfo -> bombInfo.bomb() == BombType.LOOT)
+                          .forEach(bombInfo -> bombServers.add(bombInfo.server()));
+                  servers.stream()
+                          .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .limit(1)
+                          .forEach(world -> {
+                             Handlers.Command.queueCommand("switch " + world);
+                             exit.set(true);
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any double loot servers that aren't full", GRAY);
+                  break;
+               case "dungeon":
+                  bombServers = new ArrayList<>();
+                  BombBellFeature.ACTIVE_BOMBS.stream()
+                          .filter(bombInfo -> bombInfo.bomb() == BombType.DUNGEON)
+                          .forEach(bombInfo -> bombServers.add(bombInfo.server()));
+                  servers.stream()
+                          .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .limit(1)
+                          .forEach(world -> {
+                             Handlers.Command.queueCommand("switch " + world);
+                             exit.set(true);
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any free dungeon servers that aren't full", GRAY);
+                  break;
+               case "pxp":
+                  bombServers = new ArrayList<>();
+                  BombBellFeature.ACTIVE_BOMBS.stream()
+                          .filter(bombInfo -> bombInfo.bomb() == BombType.PROFESSION_XP)
+                          .forEach(bombInfo -> bombServers.add(bombInfo.server()));
+                  servers.stream()
+                          .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .limit(1)
+                          .forEach(world -> {
+                             Handlers.Command.queueCommand("switch " + world);
+                             exit.set(true);
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any double profession xp servers that aren't full", GRAY);
+                  break;
+               case "pspd":
+                  bombServers = new ArrayList<>();
+                  BombBellFeature.ACTIVE_BOMBS.stream()
+                          .filter(bombInfo -> bombInfo.bomb() == BombType.PROFESSION_SPEED)
+                          .forEach(bombInfo -> bombServers.add(bombInfo.server()));
+                  servers.stream()
+                          .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .limit(1)
+                          .forEach(world -> {
+                             Handlers.Command.queueCommand("switch " + world);
+                             exit.set(true);
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any double profession speed servers that aren't full", GRAY);
+                  break;
+               case "profs":
+                  List<String> pxpServers = new ArrayList<>();
+                  bombServers = new ArrayList<>();
+                  BombBellFeature.ACTIVE_BOMBS.stream()
+                          .filter(bombInfo -> bombInfo.bomb() == BombType.PROFESSION_XP)
+                          .forEach(bombInfo -> pxpServers.add(bombInfo.server()));
+                  BombBellFeature.ACTIVE_BOMBS.stream()
+                          .filter(bombInfo -> bombInfo.bomb() == BombType.PROFESSION_SPEED)
+                          .forEach(bombInfo -> {
+                             if (pxpServers.contains(bombInfo.server())) {
+                                bombServers.add(bombInfo.server());
+                             }
+                          });
+                  if (exit.get()) return;
+                  ChatUtil.message("Could not find any double profession xp/speed servers that aren't full", GRAY);
+                  break;
+            }
+         }
       });
    }
 
@@ -524,7 +670,7 @@ public class BreadsticksCommand {
    @Subcommand("dailyreset")
    private static void dailyReset(
            CommandContext<FabricClientCommandSource> context
-   ) {
+   ) { // TO-DO: Is this time right?
       Date date = new Date();
       Date resetDate = new Date();
       resetDate.setHours(4 - resetDate.getTimezoneOffset() / 60);
@@ -546,12 +692,14 @@ public class BreadsticksCommand {
    ) {
       Date date = new Date();
       Date resetDate = new Date();
-      resetDate.setHours(4 - resetDate.getTimezoneOffset() / 60);
-      resetDate.setMinutes(0);
-      resetDate.setSeconds(0);
+      resetDate.setHours(3);
+      resetDate.setMinutes(59);
+      resetDate.setSeconds(30);
       while (resetDate.getDay() != 1 || resetDate.before(date)) {
          resetDate.setDate(resetDate.getDate() + 1);
       }
+      resetDate.setHours(resetDate.getHours() - resetDate.getTimezoneOffset() / 60);
+
       Duration timeBetween = Duration.of(date, resetDate);
       ChatUtil.message(TextBuilder.of("The next weekly objective reset is in ", GRAY)
               .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
@@ -565,12 +713,14 @@ public class BreadsticksCommand {
    ) {
       Date date = new Date();
       Date resetDate = new Date();
-      resetDate.setHours(18 - resetDate.getTimezoneOffset() / 60);
+      resetDate.setHours(18);
       resetDate.setMinutes(0);
       resetDate.setSeconds(0);
       while (resetDate.getDay() != 5 || resetDate.before(date)) {
          resetDate.setDate(resetDate.getDate() + 1);
       }
+      resetDate.setHours(resetDate.getHours() - resetDate.getTimezoneOffset() / 60);
+
       Duration timeBetween = Duration.of(date, resetDate);
       ChatUtil.message(TextBuilder.of("The next lootpool reset is in ", GRAY)
               .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
@@ -706,14 +856,9 @@ public class BreadsticksCommand {
    }
 
    private static void getPlayer(String string, Consumer<Player> consumer) {
-      getPlayer(string, consumer, false);
-   }
+      ChatUtil.message("Finding player %s...".formatted(string), GREEN);
 
-   private static void getPlayer(String string, Consumer<Player> consumer, boolean silent) {
-      if (!silent) ChatUtil.message("Finding player %s...".formatted(string), GREEN);
-
-      new Player.Request(string).thenAccept(optional -> optional.ifPresentOrElse(consumer, () -> {
-         if (!silent) ChatUtil.message("Could not find player %s".formatted(string), RED);
-      }));
+      new Player.Request(string).thenAccept(optional -> optional.ifPresentOrElse(consumer, () ->
+              ChatUtil.message("Could not find player %s".formatted(string), RED)));
    }
 }

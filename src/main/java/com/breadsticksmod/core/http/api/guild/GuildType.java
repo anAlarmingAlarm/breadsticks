@@ -6,14 +6,6 @@ public interface GuildType extends Printable {
    String name();
    String prefix();
 
-   default int countTerritories() {
-//      Territory.Owner guild = TerritoryObserver.getLatest().getOwner(name());
-//
-//      return guild == null ? 0 : guild.countTerritories();
-
-      return 0;
-   }
-
    @Override
    default String prettyPrint() {
       return name() + " [" + prefix() + "]";

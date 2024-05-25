@@ -20,7 +20,8 @@ public class AutoAttackFeature extends Feature {
    @Value("Toggle")
    @Tooltip("Makes the keybind a toggle instead of requiring being pressed continuously to activate")
    private boolean toggle = false;
-   @Schedule(rate = 50, unit = ChronoUnit.MILLISECONDS)
+
+   @Schedule(rate = 15, unit = ChronoUnit.MILLISECONDS)
    private void onUpdate() {
       if (toggle) {
           if (AutoAttackKeybind.getClickNum() % 2 == 1) {

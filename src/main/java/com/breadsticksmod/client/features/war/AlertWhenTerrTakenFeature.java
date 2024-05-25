@@ -92,10 +92,10 @@ public class AlertWhenTerrTakenFeature extends Feature {
       String name = event.getTerritory();
       String playerGuild = Models.Guild.getGuildName();
 
-      List<Territory> territories = new ArrayList<>(TerritoryModel.getTerritoryList().stream().toList());
-      territories.sort(Comparator.comparing(territory -> territory.getName().toLowerCase()));
+      List<String> territories = TerritoryModel.TERRITORIES;
+      territories.sort(Comparator.comparing(String::toLowerCase));
       int i = 0;
-      while (!territories.get(i).getName().equals(name)) i++;
+      while (!territories.get(i).equals(name)) i++;
       if (code.length() < i / 2) return false;
 
       if (i % 2 == 0) {

@@ -44,7 +44,7 @@ public class BombBellFeature extends Feature {
    @Value("Background Color")
    private static Color background_color = Color.ofRGBA(0, 0, 0, 127);
 
-   private static List<BombInfo> ACTIVE_BOMBS = List.of();
+   public static List<BombInfo> ACTIVE_BOMBS = List.of();
 
    @Hud.Name("Bomb Bell Overlay")
    @Hud.Offset(x = 0F, y = 0F)
