@@ -172,7 +172,7 @@ public class BreadsticksCommand {
       });
    }
 
-   private static final List<String> serverTypes = List.of("any", "recent", "dxp", "dloot", "dungeon", "pxp", "pspd", "profs");
+   private static final List<String> serverTypes = List.of("any", "recent", "dxp", "dloot", "dungeon", "pxp", "pspd", "profs", "hub");
    @Subcommand("switch")
    private static void serverSwitch(
            CommandContext<FabricClientCommandSource> context,
@@ -197,6 +197,7 @@ public class BreadsticksCommand {
                case "any":
                   servers.stream()
                           .filter(world -> !world.getWorld().isBlank() && world.size() < 40)
+                          .filter(world -> !Objects.equals(world.getWorld(), Models.WorldState.getCurrentWorldName()))
                           .limit(1)
                           .forEach(world -> {
                              Handlers.Command.queueCommand("switch " + world);
@@ -208,6 +209,7 @@ public class BreadsticksCommand {
                case "recent":
                   servers.stream()
                           .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && world.getUptime().toHours() <= 2)
+                          .filter(world -> !Objects.equals(world.getWorld(), Models.WorldState.getCurrentWorldName()))
                           .sorted(Comparator.comparing(World::getUptime))
                           .limit(1)
                           .forEach(world -> {
@@ -224,6 +226,7 @@ public class BreadsticksCommand {
                           .forEach(bombInfo -> bombServers.add(bombInfo.server()));
                   servers.stream()
                           .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .filter(world -> !Objects.equals(world.getWorld(), Models.WorldState.getCurrentWorldName()))
                           .limit(1)
                           .forEach(world -> {
                              Handlers.Command.queueCommand("switch " + world);
@@ -239,6 +242,7 @@ public class BreadsticksCommand {
                           .forEach(bombInfo -> bombServers.add(bombInfo.server()));
                   servers.stream()
                           .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .filter(world -> !Objects.equals(world.getWorld(), Models.WorldState.getCurrentWorldName()))
                           .limit(1)
                           .forEach(world -> {
                              Handlers.Command.queueCommand("switch " + world);
@@ -254,6 +258,7 @@ public class BreadsticksCommand {
                           .forEach(bombInfo -> bombServers.add(bombInfo.server()));
                   servers.stream()
                           .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .filter(world -> !Objects.equals(world.getWorld(), Models.WorldState.getCurrentWorldName()))
                           .limit(1)
                           .forEach(world -> {
                              Handlers.Command.queueCommand("switch " + world);
@@ -269,6 +274,7 @@ public class BreadsticksCommand {
                           .forEach(bombInfo -> bombServers.add(bombInfo.server()));
                   servers.stream()
                           .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .filter(world -> !Objects.equals(world.getWorld(), Models.WorldState.getCurrentWorldName()))
                           .limit(1)
                           .forEach(world -> {
                              Handlers.Command.queueCommand("switch " + world);
@@ -284,6 +290,7 @@ public class BreadsticksCommand {
                           .forEach(bombInfo -> bombServers.add(bombInfo.server()));
                   servers.stream()
                           .filter(world -> !world.getWorld().isBlank() && world.size() < 40 && bombServers.contains(world.getWorld()))
+                          .filter(world -> !Objects.equals(world.getWorld(), Models.WorldState.getCurrentWorldName()))
                           .limit(1)
                           .forEach(world -> {
                              Handlers.Command.queueCommand("switch " + world);
@@ -297,6 +304,7 @@ public class BreadsticksCommand {
                   bombServers = new ArrayList<>();
                   BombBellFeature.ACTIVE_BOMBS.stream()
                           .filter(bombInfo -> bombInfo.bomb() == BombType.PROFESSION_XP)
+                          .filter(world -> !Objects.equals(world.server(), Models.WorldState.getCurrentWorldName()))
                           .forEach(bombInfo -> pxpServers.add(bombInfo.server()));
                   BombBellFeature.ACTIVE_BOMBS.stream()
                           .filter(bombInfo -> bombInfo.bomb() == BombType.PROFESSION_SPEED)
@@ -307,6 +315,9 @@ public class BreadsticksCommand {
                           });
                   if (exit.get()) return;
                   ChatUtil.message("Could not find any double profession xp/speed servers that aren't full", GRAY);
+                  break;
+               case "hub":
+                  Handlers.Command.queueCommand("hub");
                   break;
             }
          }
@@ -666,11 +677,11 @@ public class BreadsticksCommand {
       }
    }
 
-   @Alias("dr")
+   @Alias({"dr", "tr", "totemreset"})
    @Subcommand("dailyreset")
    private static void dailyReset(
            CommandContext<FabricClientCommandSource> context
-   ) { // TO-DO: Is this time right?
+   ) { // TO-DO: Is this time right for daily objective reset? (11 pm my time)
       Date date = new Date();
       Date resetDate = new Date();
       resetDate.setHours(4 - resetDate.getTimezoneOffset() / 60);
@@ -680,7 +691,7 @@ public class BreadsticksCommand {
          resetDate.setDate(resetDate.getDate() + 1);
       }
       Duration timeBetween = Duration.of(date, resetDate);
-      ChatUtil.message(TextBuilder.of("The next daily objective reset is in ", GRAY)
+      ChatUtil.message(TextBuilder.of("The next totem/daily objective reset is in ", GRAY)
               .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
               .append(".", GRAY));
    }
@@ -702,27 +713,6 @@ public class BreadsticksCommand {
 
       Duration timeBetween = Duration.of(date, resetDate);
       ChatUtil.message(TextBuilder.of("The next weekly objective reset is in ", GRAY)
-              .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
-              .append(".", GRAY));
-   }
-
-   @Alias("lr")
-   @Subcommand("lootpoolreset")
-   private static void lootpoolReset(
-           CommandContext<FabricClientCommandSource> context
-   ) {
-      Date date = new Date();
-      Date resetDate = new Date();
-      resetDate.setHours(18);
-      resetDate.setMinutes(0);
-      resetDate.setSeconds(0);
-      while (resetDate.getDay() != 5 || resetDate.before(date)) {
-         resetDate.setDate(resetDate.getDate() + 1);
-      }
-      resetDate.setHours(resetDate.getHours() - resetDate.getTimezoneOffset() / 60);
-
-      Duration timeBetween = Duration.of(date, resetDate);
-      ChatUtil.message(TextBuilder.of("The next lootpool reset is in ", GRAY)
               .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
               .append(".", GRAY));
    }

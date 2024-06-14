@@ -7,7 +7,6 @@ import com.breadsticksmod.client.models.war.Defense;
 import com.breadsticksmod.client.models.war.timer.events.TimerStartEvent;
 import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Model;
-import com.breadsticksmod.core.http.requests.mapstate.Territory;
 import com.breadsticksmod.core.heartbeat.annotations.Schedule;
 import com.breadsticksmod.core.time.Duration;
 import com.breadsticksmod.core.time.ChronoUnit;
@@ -24,11 +23,15 @@ import com.wynntils.mc.event.InventoryMouseClickedEvent;
 import com.wynntils.mc.event.TickEvent;
 import com.wynntils.models.territories.TerritoryAttackTimer;
 import com.wynntils.utils.mc.McUtils;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
@@ -207,5 +210,63 @@ public class TimerModel extends Model {
 
    public static Optional<Timer> getTimer(String territory, Duration timeRemaining) {
       return getTimer(territory, timeRemaining, String::equalsIgnoreCase);
+   }
+
+   public static final Path PATH = Path.of(FabricLoader.getInstance().getConfigDir().toAbsolutePath() + "\\breadsticks\\timers.txt");
+
+   public static void saveTimers() {
+      THIS.saveTimersHelper();
+   }
+
+   private void saveTimersHelper() {
+      List<String> lines = new ArrayList<>(List.of());
+      getTimers().forEach(timer ->
+            lines.add(timer.getTerritory() + ";" +
+                  timer.getStart().toString() + ";" +
+                  timer.getDuration().toSeconds() + ";" +
+                  timer.getOwner() + ";" +
+                  timer.getDefense() + ";" +
+                  (timer.confident ? 1 : 0) + ";" +
+                  timer.queuer + "\n"
+      ));
+
+      try {
+         Files.delete(PATH);
+      } catch (Exception ignored) { }
+
+      if (lines.isEmpty()) return;
+      try {
+         Files.createFile(PATH);
+         Files.write(PATH, lines);
+      } catch (Exception ignored) { }
+   }
+
+   public static void loadTimers() {
+      THIS.loadTimersHelper();
+   }
+
+   private void loadTimersHelper() {
+      try {
+         if (!Files.exists(PATH)) return;
+         List<String> lines = Files.readAllLines(PATH);
+         if (lines.isEmpty()) return;
+
+         TIMERS.clear();
+         for (String s : lines) {
+            if (s.isEmpty()) break;
+
+            String[] line = s.split(";");
+            TIMERS.put(line[0], new Timer(
+                    line[0],
+                    new Date(line[1]),
+                    Duration.of(Double.parseDouble(line[2]), ChronoUnit.SECONDS),
+                    line[3],
+                    Defense.from(line[4]),
+                    line[5].equals("1"),
+                    line.length == 7 ? line[6] : ""));
+         }
+      } catch(Exception e) {
+         ChatUtil.message("Failed to recover timers", ChatFormatting.RED);
+      }
    }
 }

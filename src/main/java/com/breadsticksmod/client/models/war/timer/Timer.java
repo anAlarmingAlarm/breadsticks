@@ -37,6 +37,16 @@ public final class Timer implements Comparable<Timer> {
       this.confident = true;
    }
 
+   public Timer(String territory, Date start, Duration timer, String owner, Defense defense, boolean confident, String queuer) {
+      this.territory = territory;
+      this.start = start;
+      this.timer = timer.add(499, ChronoUnit.MILLISECONDS);
+      this.owner = owner;
+      this.defense = defense;
+      this.confident = confident;
+      this.queuer = queuer;
+   }
+
    public String getTerritory() {
       return territory;
    }
