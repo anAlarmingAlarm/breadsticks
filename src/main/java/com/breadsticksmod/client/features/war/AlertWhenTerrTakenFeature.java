@@ -64,21 +64,22 @@ public class AlertWhenTerrTakenFeature extends Feature {
    public void onTerritoryCapture(TerritoryCapturedEvent event) {
       boolean tcMatch = false;
       if (!terrcheckFile.isEmpty() && alertForSpecificTerrs) {
+         String code;
          try {
             File tcFile = FabricLoader.getInstance().getConfigDir().resolve("breadsticks\\terrcheckfiles\\" + terrcheckFile + ".txt").toFile();
             Scanner scanner = new Scanner(tcFile);
             scanner.nextLine();
-            String code = scanner.nextLine();
+            code = scanner.nextLine();
             scanner.close();
-            tcMatch = terrCheck(event, code);
          } catch (FileNotFoundException e) {
             ChatUtil.message(TextBuilder.of("Could not find file", RED));
             return;
-         } catch (Exception e) {
+         }  catch (Exception e) {
             ChatUtil.message(TextBuilder.of("Failed to open file", RED));
             ChatUtil.message(e.getMessage());
             return;
          }
+         tcMatch = terrCheck(event, code);
       }
       if (!alertForSpecificTerrs || tcMatch || (terrcheckFile.isEmpty() && alertTerrs.contains(event.getTerritory()))) {
          if (timeSince >= cooldown) {
@@ -93,9 +94,11 @@ public class AlertWhenTerrTakenFeature extends Feature {
       String playerGuild = Models.Guild.getGuildName();
 
       List<String> territories = TerritoryModel.TERRITORIES;
-      territories.sort(Comparator.comparing(String::toLowerCase));
+      territories.sort(Comparator.comparing(territory -> territory.toLowerCase()));
       int i = 0;
-      while (!territories.get(i).equals(name)) i++;
+      while (!territories.get(i).equals(name)) {
+         if (++i > 500) return false;
+      }
       if (code.length() < i / 2) return false;
 
       if (i % 2 == 0) {

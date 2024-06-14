@@ -31,7 +31,7 @@ public enum Defense {
    }
 
    public static Defense from(String string) {
-      for (Defense defense : values()) if (defense.WYNN_STRING.equals(string)) return defense;
+      for (Defense defense : values()) if (defense.WYNN_STRING.equalsIgnoreCase(string)) return defense;
 
       return UNKNOWN;
    }

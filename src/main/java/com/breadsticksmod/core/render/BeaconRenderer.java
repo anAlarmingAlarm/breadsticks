@@ -293,7 +293,7 @@ class BeaconRenderer {
 
             DUMMY_WAYPOINT
                     .getPointerPoi()
-                    .renderAt(poseStack, bufferSource, pointerDisplayPositionX, pointerDisplayPositionY, false, 1, 1, 1);
+                    .renderAt(poseStack, bufferSource, pointerDisplayPositionX, pointerDisplayPositionY, false, 1, 1, 1, true);
             bufferSource.endBatch();
             poseStack.popPose();
          }

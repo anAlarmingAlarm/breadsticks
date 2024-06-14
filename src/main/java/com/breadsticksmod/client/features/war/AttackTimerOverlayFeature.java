@@ -40,16 +40,16 @@ public class AttackTimerOverlayFeature extends Feature {
    @Tooltip("Hides the regular timers on the scoreboard")
    private static boolean hideTimers = true;
 
+   @Value("Show queuer names when holding Tab")
+   @Tooltip("Shows the username of the person who queued a territory beside its timer while holding Tab")
+   private static boolean showNames = false;
+
    @Value("Text Style")
    private static TextShadow style = TextShadow.OUTLINE;
 
    @Alpha
    @Value("Background Color")
    private static Color background_color = Color.ofRGBA(0, 0, 0, 127);
-
-   @Value("Show queuer names when holding Tab")
-   @Tooltip("Shows the username of the person who queued a territory beside its timer while holding Tab")
-   private static boolean showNames = false;
 
    public static List<Timer> ACTIVE_TIMERS = List.of();
 
