@@ -1,5 +1,6 @@
 package com.breadsticksmod.client.features;
 
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.State;
@@ -24,11 +25,13 @@ public class ShortenBombMessagesFeature extends Feature {
    @SubscribeEvent
    public void onChatMessage(ChatMessageReceivedEvent event) {
       StyledText message = event.getStyledText();
+      String thrower = ChatUtil.getNickname(event.getOriginalStyledText());
       Matcher matcher = message.getMatcher(THROW_MESSAGE_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
-         event.setMessage(TextBuilder.of(matcher.group("thrower"), ChatFormatting.AQUA)
+         if (thrower.isEmpty()) thrower = matcher.group("thrower");
+         event.setMessage(TextBuilder.of(thrower, ChatFormatting.AQUA)
                  .append(" has thrown a ", ChatFormatting.DARK_AQUA)
-                 .append(toTitleCase(matcher.group("bomb")), ChatFormatting.AQUA)
+                 .append(ChatUtil.toTitleCase(matcher.group("bomb")), ChatFormatting.AQUA)
                  .append("!", ChatFormatting.DARK_AQUA)
                  .toComponent());
          return;
@@ -36,9 +39,10 @@ public class ShortenBombMessagesFeature extends Feature {
 
       matcher = message.getMatcher(EXPIRE_MESSAGE_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
-         event.setMessage(TextBuilder.of(matcher.group("thrower"), ChatFormatting.AQUA)
+         if (thrower.isEmpty()) thrower = matcher.group("thrower");
+         event.setMessage(TextBuilder.of(thrower, ChatFormatting.AQUA)
                  .append("'s ", ChatFormatting.DARK_AQUA)
-                 .append(toTitleCase(matcher.group("bomb")), ChatFormatting.AQUA)
+                 .append(ChatUtil.toTitleCase(matcher.group("bomb")), ChatFormatting.AQUA)
                  .append(" has expired.", ChatFormatting.DARK_AQUA)
                  .toComponent());
          return;
@@ -46,18 +50,12 @@ public class ShortenBombMessagesFeature extends Feature {
 
       matcher = message.getMatcher(EXPIRE_PARTY_MESSAGE_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
-         event.setMessage(TextBuilder.of(matcher.group("thrower"), ChatFormatting.AQUA)
+         if (thrower.isEmpty()) thrower = matcher.group("thrower");
+         event.setMessage(TextBuilder.of(thrower, ChatFormatting.AQUA)
                  .append("'s ", ChatFormatting.DARK_AQUA)
                  .append("Party Bomb", ChatFormatting.AQUA)
                  .append(" has expired.", ChatFormatting.DARK_AQUA)
                  .toComponent());
       }
-   }
-
-   private String toTitleCase(String word) {
-      return Stream.of(word.split(" "))
-              .map(w -> w.toUpperCase().charAt(0) + w.substring(1))
-              .reduce((s, s2) -> s + " " + s2)
-              .orElse("");
    }
 }

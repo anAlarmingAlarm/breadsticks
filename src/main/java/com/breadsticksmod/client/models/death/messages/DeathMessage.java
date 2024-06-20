@@ -1,6 +1,7 @@
 package com.breadsticksmod.client.models.death.messages;
 
 import com.breadsticksmod.client.models.death.messages.types.DefaultMessage;
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.text.TextBuilder;
 import com.wynntils.core.text.PartStyle;
 import com.wynntils.core.text.StyledText;
@@ -12,8 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
-
-import static com.breadsticksmod.client.features.RevealNicknamesFeature.NICK_REGEX;
 
 public interface DeathMessage {
    Target target();
@@ -65,7 +64,7 @@ public interface DeathMessage {
 
          if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_TEXT) {
             for (StyledText component : StyledText.fromComponent(hover.getValue(HoverEvent.Action.SHOW_TEXT)).split("\n")) {
-               Matcher matcher = component.getMatcher(NICK_REGEX, PartStyle.StyleType.NONE);
+               Matcher matcher = component.getMatcher(ChatUtil.NICK_REGEX, PartStyle.StyleType.NONE);
                if (!matcher.matches())
                   continue;
 

@@ -717,6 +717,27 @@ public class BreadsticksCommand {
               .append(".", GRAY));
    }
 
+   @Alias("lr")
+   @Subcommand("lootpoolreset")
+   private static void lootpoolReset(
+           CommandContext<FabricClientCommandSource> context
+   ) {
+      Date date = new Date();
+      Date resetDate = new Date();
+      resetDate.setHours(18);
+      resetDate.setMinutes(0);
+      resetDate.setSeconds(0);
+      while (resetDate.getDay() != 5 || resetDate.before(date)) {
+         resetDate.setDate(resetDate.getDate() + 1);
+      }
+      resetDate.setHours(resetDate.getHours() - resetDate.getTimezoneOffset() / 60);
+
+      Duration timeBetween = Duration.of(date, resetDate);
+      ChatUtil.message(TextBuilder.of("The next lootpool reset is in ", GRAY)
+              .append(timeBetween.toString(COMPACT, SECONDS), AQUA)
+              .append(".", GRAY));
+   }
+
    @Alias("up")
    @Subcommand("uptime")
    private static void getServerUptime(
@@ -806,7 +827,7 @@ public class BreadsticksCommand {
    }
 
    private static final Date seasonStartDate = new Date(2024 - 1900, Calendar.APRIL, 26, 19, 0);
-   private static final Date seasonEndDate = new Date(2024 - 1900, Calendar.JUNE, 18, 0, 0);
+   private static final Date seasonEndDate = new Date(2024 - 1900, Calendar.JUNE, 17, 0, 0);
    private static final int season = 18;
    @Alias("swars")
    @Subcommand("seasonwars")
@@ -839,7 +860,7 @@ public class BreadsticksCommand {
                       .append(" war", GRAY).appendIf(() -> wars != 1, "s", GRAY)
                       .append(" in the past ", GRAY)
                       .append(start.toString(COMPACT, SECONDS), AQUA)
-                      .append(". The season ends in ", GRAY)
+                      .append(". The season ends in approximately ", GRAY)
                       .append(end.toString(COMPACT, SECONDS), AQUA)
                       .append(".", GRAY)
       );

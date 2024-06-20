@@ -1,5 +1,6 @@
 package com.breadsticksmod.client.features.war;
 
+import com.breadsticksmod.client.config.providers.text.ColorProvider;
 import com.breadsticksmod.client.models.war.Defense;
 import com.breadsticksmod.client.models.territory.TerritoryModel;
 import com.breadsticksmod.client.models.war.timer.Timer;
@@ -47,6 +48,24 @@ public class AttackTimerOverlayFeature extends Feature {
    @Value("Text Style")
    private static TextShadow style = TextShadow.OUTLINE;
 
+   @Dropdown(title = "Text Color", options = ColorProvider.class)
+   private static ChatFormatting textColor = GRAY;
+
+   @Dropdown(title = "Timer Color", options = ColorProvider.class)
+   private static ChatFormatting timerColor = GRAY;
+
+   @Dropdown(title = "Timer Color Below 30s", options = ColorProvider.class)
+   private static ChatFormatting timerColor30s = RED;
+
+   @Dropdown(title = "Timer Color while in Territory", options = ColorProvider.class)
+   private static ChatFormatting timerColorTerr = LIGHT_PURPLE;
+
+   @Dropdown(title = "Timer Length Color", options = ColorProvider.class)
+   private static ChatFormatting timerLengthColor = AQUA;
+
+   @Dropdown(title = "Queuer Name Color", options = ColorProvider.class)
+   private static ChatFormatting queuerColor = WHITE;
+
    @Alpha
    @Value("Background Color")
    private static Color background_color = Color.ofRGBA(0, 0, 0, 127);
@@ -86,13 +105,13 @@ public class AttackTimerOverlayFeature extends Feature {
 
          if (showNames && mc().options.keyPlayerList.isDown) {
             new TextBox(builder -> builder.append(timers, timer -> builder
-                    .append(((timer.queuer.isEmpty()) ? "Unknown" : timer.queuer), ((timer.queuer.isEmpty()) ? new ChatFormatting[] {WHITE, ITALIC} : new ChatFormatting[]{WHITE}))
-                    .append(" - ", RESET, GRAY)
+                    .append(((timer.queuer.isEmpty()) ? "Unknown" : timer.queuer), ((timer.queuer.isEmpty()) ? new ChatFormatting[] {queuerColor, ITALIC} : new ChatFormatting[]{queuerColor}))
+                    .append(" - ", RESET, textColor)
                     .append(timer.getTerritory(), getColor(timer))
-                    .append(" (", RESET, GRAY)
+                    .append(" (", RESET, textColor)
                     .append(timer.getDefense().toText(timer.isConfident()))
-                    .append("): ", RESET, GRAY)
-                    .append(format(timer.getRemaining()), RESET, AQUA))
+                    .append("): ", RESET, textColor)
+                    .append(format(timer.getRemaining()), RESET, timerLengthColor))
                     , x, y).setTextStyle(style)
                     .setFill(background_color)
                     .with(this)
@@ -102,10 +121,10 @@ public class AttackTimerOverlayFeature extends Feature {
          } else {
             new TextBox(builder -> builder.append(timers, timer -> builder
                     .append(timer.getTerritory(), getColor(timer))
-                    .append(" (", RESET, GRAY)
+                    .append(" (", RESET, textColor)
                     .append(timer.getDefense().toText(timer.isConfident()))
-                    .append("): ", RESET, GRAY)
-                    .append(format(timer.getRemaining()), RESET, AQUA))
+                    .append("): ", RESET, textColor)
+                    .append(format(timer.getRemaining()), RESET, timerLengthColor))
                     , x, y).setTextStyle(style)
                     .setFill(background_color)
                     .with(this)
@@ -117,11 +136,11 @@ public class AttackTimerOverlayFeature extends Feature {
 
       private static ChatFormatting[] getColor(Timer timer) {
          if (TerritoryModel.getCurrentTerritory().isPresent() && TerritoryModel.getCurrentTerritory().get().getName().equals(timer.getTerritory())) {
-            return new ChatFormatting[] {LIGHT_PURPLE, BOLD};
-            } else if (timer.getRemaining().toSeconds() <= 30) {
-               return new ChatFormatting[] {RED};
+            return new ChatFormatting[] {timerColorTerr, BOLD};
+         } else if (timer.getRemaining().toSeconds() <= 30) {
+            return new ChatFormatting[] {timerColor30s};
          } else {
-            return new ChatFormatting[] {GRAY};
+            return new ChatFormatting[] {timerColor};
          }
       }
 

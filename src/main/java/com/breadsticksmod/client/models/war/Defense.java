@@ -30,6 +30,11 @@ public enum Defense {
       return builder.append(WYNN_STRING).toString();
    }
 
+   @Override
+   public String toString() {
+      return WYNN_STRING;
+   }
+
    public static Defense from(String string) {
       for (Defense defense : values()) if (defense.WYNN_STRING.equalsIgnoreCase(string)) return defense;
 

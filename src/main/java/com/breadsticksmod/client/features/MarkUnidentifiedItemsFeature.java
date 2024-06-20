@@ -1,6 +1,5 @@
 package com.breadsticksmod.client.features;
 
-import com.breadsticksmod.client.config.providers.text.ShadowProvider;
 import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
@@ -13,6 +12,7 @@ import com.wynntils.utils.render.FontRenderer;
 import com.wynntils.utils.render.TextRenderSetting;
 import com.wynntils.utils.render.TextRenderTask;
 import com.wynntils.utils.render.type.TextShadow;
+import me.shedaniel.math.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -30,12 +30,11 @@ public class MarkUnidentifiedItemsFeature extends Feature {
    @Tooltip("Show the ? text in the bottom-right corner instead of the center of the item")
    private static boolean cornerText = false;
 
-   @Value("Color text purple")
-   @Tooltip("Colors the ? light purple instead of white")
-   private static boolean porpl = true;
+   @Value("Text Style")
+   private static TextShadow style = TextShadow.OUTLINE;
 
-   @Dropdown(title = "Text shadow", options = ShadowProvider.class)
-   private TextShadow textShadow = TextShadow.OUTLINE;
+   @Value("Text Color")
+   private static Color textColor = ChatUtil.colorOf(ChatFormatting.LIGHT_PURPLE);
 
    private static final Pattern UNID_PATTERN = Pattern.compile("^\\[Unidentified .+]");
 
@@ -73,8 +72,8 @@ public class MarkUnidentifiedItemsFeature extends Feature {
       FontRenderer.getInstance().renderText(poseStack, x, y, new TextRenderTask(
               "?",
               TextRenderSetting.DEFAULT
-                      .withTextShadow(textShadow)
-                      .withCustomColor(CustomColor.fromChatFormatting((porpl ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.WHITE)))));
+                      .withTextShadow(style)
+                      .withCustomColor(CustomColor.fromInt(textColor.getColor()))));
       poseStack.popPose();
    }
 }

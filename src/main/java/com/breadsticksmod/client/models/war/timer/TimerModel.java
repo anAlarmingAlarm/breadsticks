@@ -120,22 +120,13 @@ public class TimerModel extends Model {
    }
 
    private String getNickname(StyledText msg) {
-      Matcher matcher;
-      List<StyledText> textList = List.of(msg.getPartsAsTextArray());
-      for (StyledText text : textList) {
-         var hover = text.getFirstPart().getPartStyle().getStyle().getHoverEvent();
-         if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_TEXT && text.getFirstPart().getPartStyle().isItalic()) {
-            for (StyledText component : StyledText.fromComponent(hover.getValue(HoverEvent.Action.SHOW_TEXT)).split("\n")) {
-               matcher = component.getMatcher(RevealNicknamesFeature.NICK_REGEX, PartStyle.StyleType.NONE);
-               if (!matcher.matches()) continue;
-               
-               return matcher.group("username");
-            }
-         }
-      }
-      matcher = msg.getMatcher(DEFENSE_PATTERN, PartStyle.StyleType.NONE);
-      if (!matcher.matches()) return "";
-      return matcher.group("queuer");
+      String nickname = ChatUtil.getNickname(msg);
+      if (!nickname.isEmpty()) return nickname;
+
+      Matcher matcher = msg.getMatcher(DEFENSE_PATTERN, PartStyle.StyleType.NONE);
+      if (matcher.matches()) return matcher.group("queuer");
+
+      return "";
    }
 
    @SubscribeEvent
@@ -221,14 +212,17 @@ public class TimerModel extends Model {
    private void saveTimersHelper() {
       List<String> lines = new ArrayList<>(List.of());
       getTimers().forEach(timer ->
-            lines.add(timer.getTerritory() + ";" +
+            lines.add(
+                  timer.getTerritory() + ";" +
                   timer.getStart().toString() + ";" +
                   timer.getDuration().toSeconds() + ";" +
                   timer.getOwner() + ";" +
-                  timer.getDefense() + ";" +
+                  timer.getDefense().toString() + ";" +
                   (timer.confident ? 1 : 0) + ";" +
-                  timer.queuer + "\n"
-      ));
+                  (timer.personal ? 1 : 0) + ";" +
+                  timer.queuer
+            )
+      );
 
       try {
          Files.delete(PATH);
@@ -258,12 +252,13 @@ public class TimerModel extends Model {
             String[] line = s.split(";");
             TIMERS.put(line[0], new Timer(
                     line[0],
-                    new Date(line[1]),
+                    (line[1].equals("debug")) ? new Date() : new Date(line[1]),
                     Duration.of(Double.parseDouble(line[2]), ChronoUnit.SECONDS),
                     line[3],
                     Defense.from(line[4]),
                     line[5].equals("1"),
-                    line.length == 7 ? line[6] : ""));
+                    line[6].equals("1"),
+                    line.length == 8 ? line[7] : ""));
          }
       } catch(Exception e) {
          ChatUtil.message("Failed to recover timers", ChatFormatting.RED);

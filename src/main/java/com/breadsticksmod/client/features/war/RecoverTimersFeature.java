@@ -1,4 +1,4 @@
-package com.breadsticksmod.client.features;
+package com.breadsticksmod.client.features.war;
 
 import com.breadsticksmod.client.models.war.timer.TimerModel;
 import com.breadsticksmod.core.Default;
