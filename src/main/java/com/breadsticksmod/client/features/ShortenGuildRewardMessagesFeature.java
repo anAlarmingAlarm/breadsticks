@@ -1,5 +1,6 @@
 package com.breadsticksmod.client.features;
 
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.State;
@@ -24,6 +25,7 @@ public class ShortenGuildRewardMessagesFeature extends Feature {
    @SubscribeEvent
    public void onChatMessage(ChatMessageReceivedEvent event) {
       StyledText message = event.getStyledText();
+      String rewarder = ChatUtil.getNickname(event.getOriginalStyledText());
       Matcher matcher = message.getMatcher(TOME_FOUND_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
          event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
@@ -36,8 +38,9 @@ public class ShortenGuildRewardMessagesFeature extends Feature {
 
       matcher = message.getMatcher(TOME_REWARDED_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
+         if (rewarder.isEmpty()) rewarder = matcher.group("rewarder");
          event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
-                 .append(matcher.group("rewarder") + " rewarded ", ChatFormatting.AQUA)
+                 .append(rewarder + " rewarded ", ChatFormatting.AQUA)
                  .append("a Tome ", ChatFormatting.DARK_AQUA)
                  .append("to " + matcher.group("recipient") + ".", ChatFormatting.AQUA)
                  .toComponent());
@@ -46,8 +49,9 @@ public class ShortenGuildRewardMessagesFeature extends Feature {
 
       matcher = message.getMatcher(EMERALDS_REWARDED_PATTERN, PartStyle.StyleType.NONE);
       if (matcher.matches()) {
+         if (rewarder.isEmpty()) rewarder = matcher.group("rewarder");
          event.setMessage(TextBuilder.of("[INFO] ", ChatFormatting.DARK_AQUA)
-                 .append(matcher.group("rewarder") + " rewarded ", ChatFormatting.AQUA)
+                 .append(rewarder + " rewarded ", ChatFormatting.AQUA)
                  .append("1024 Emeralds ", ChatFormatting.DARK_AQUA)
                  .append("to " + matcher.group("recipient") + ".", ChatFormatting.AQUA)
                  .toComponent());

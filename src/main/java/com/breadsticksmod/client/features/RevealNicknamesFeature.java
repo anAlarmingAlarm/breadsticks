@@ -1,5 +1,6 @@
 package com.breadsticksmod.client.features;
 
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.State;
@@ -21,8 +22,6 @@ import java.util.regex.Pattern;
 @Default(State.ENABLED)
 @Feature.Definition(name = "Reveal Nicknames")
 public class RevealNicknamesFeature extends Feature {
-   public static final Pattern NICK_REGEX = Pattern.compile("(?<nick>.+)'s real username is (?<username>.+)");
-
    @Value("Replace nicknames")
    private static boolean REPLACE_NICKNAMES = false;
 
@@ -46,7 +45,7 @@ public class RevealNicknamesFeature extends Feature {
 
          if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_TEXT && next.getPartStyle().isItalic()) {
             for (StyledText component : StyledText.fromComponent(hover.getValue(HoverEvent.Action.SHOW_TEXT)).split("\n")) {
-               Matcher matcher = component.getMatcher(NICK_REGEX, PartStyle.StyleType.NONE);
+               Matcher matcher = component.getMatcher(ChatUtil.NICK_REGEX, PartStyle.StyleType.NONE);
                if (!matcher.matches()) continue;
 
                String username = matcher.group("username");

@@ -2,7 +2,7 @@ package com.breadsticksmod.core.config;
 
 import com.breadsticksmod.client.events.mc.MinecraftStopEvent;
 import com.breadsticksmod.client.features.AutoUpdateFeature;
-import com.breadsticksmod.client.features.RecoverTimersFeature;
+import com.breadsticksmod.client.features.war.RecoverTimersFeature;
 import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.core.Feature;
 import com.breadsticksmod.core.Model;

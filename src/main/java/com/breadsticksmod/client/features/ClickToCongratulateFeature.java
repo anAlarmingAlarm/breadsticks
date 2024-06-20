@@ -1,5 +1,6 @@
 package com.breadsticksmod.client.features;
 
+import com.breadsticksmod.client.util.ChatUtil;
 import com.breadsticksmod.client.util.PlayerUtil;
 import com.breadsticksmod.core.Default;
 import com.breadsticksmod.core.Feature;
@@ -41,7 +42,10 @@ public class ClickToCongratulateFeature extends Feature {
       if (!matcher.matches() && !(matcher = text.getMatcher(PROF_PATTERN, PartStyle.StyleType.NONE)).matches())
          return;
 
-      String player = matcher.group("player");
+      // tbh i'm not even sure if this message includes nicknames or not, but i might as well try to catch it anyways
+      String player;
+      if (!ChatUtil.getNickname(event.getOriginalStyledText()).isEmpty()) player = ChatUtil.getNickname(event.getOriginalStyledText());
+      else player = matcher.group("player");
       if (!PlayerUtil.isPlayer(player)) return;
 
       if (clickable) {

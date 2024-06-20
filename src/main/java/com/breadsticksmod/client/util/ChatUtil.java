@@ -14,10 +14,7 @@ import com.wynntils.handlers.chat.type.MessageType;
 import com.wynntils.handlers.chat.type.RecipientType;
 import me.shedaniel.math.Color;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.*;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -34,6 +32,7 @@ import static com.wynntils.utils.mc.McUtils.sendMessageToClient;
 import static net.minecraft.ChatFormatting.*;
 
 public class ChatUtil {
+   public static final Pattern NICK_REGEX = Pattern.compile("(?<nick>.+)'s real username is (?<username>.+)");
    private static final Component PREFIX = component("[", YELLOW)
            .append(component("breadsticks", GOLD))
            .append(component("]", YELLOW))
@@ -214,5 +213,29 @@ public class ChatUtil {
 
    public static int prefixLength() {
       return PREFIX_LENGTH;
+   }
+
+   public static String getNickname(StyledText msg) {
+      Matcher matcher;
+      List<StyledText> textList = List.of(msg.getPartsAsTextArray());
+      for (StyledText text : textList) {
+         var hover = text.getFirstPart().getPartStyle().getStyle().getHoverEvent();
+         if (hover != null && hover.getAction() == HoverEvent.Action.SHOW_TEXT && text.getFirstPart().getPartStyle().isItalic()) {
+            for (StyledText component : StyledText.fromComponent(hover.getValue(HoverEvent.Action.SHOW_TEXT)).split("\n")) {
+               matcher = component.getMatcher(ChatUtil.NICK_REGEX, PartStyle.StyleType.NONE);
+               if (!matcher.matches() || matcher.group("username") == null) continue;
+
+               return matcher.group("username");
+            }
+         }
+      }
+      return "";
+   }
+
+   public static String toTitleCase(String word) {
+      return Stream.of(word.split(" "))
+              .map(w -> w.toUpperCase().charAt(0) + w.substring(1))
+              .reduce((s, s2) -> s + " " + s2)
+              .orElse("");
    }
 }
