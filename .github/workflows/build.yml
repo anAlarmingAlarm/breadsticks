@@ -6,6 +6,9 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   merge_group:
     branches: [main, dev]
+    secrets:
+      TOKEN:
+        required: true
 
 jobs:
   format-and-build:
@@ -14,9 +17,11 @@ jobs:
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
+        secrets:
+          TOKEN: ${{ secrets.TOKEN }}
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          token: ${{ secrets.TOKEN || github.token }}
+          token: ${{ TOKEN || secrets.TOKEN || github.token }}
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
