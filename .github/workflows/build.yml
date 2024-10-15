@@ -12,14 +12,6 @@ jobs:
     if: '! github.event.pull_request.draft'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
