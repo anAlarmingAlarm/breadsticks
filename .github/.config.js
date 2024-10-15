@@ -14,7 +14,7 @@ function whatBump(commits) {
         // We want to select the highest release type
         if (commit.header.startsWith("chore(bump-mc)") || commit.header.startsWith("chore!") || commit.header.startsWith("feat(major)")) {
             releaseType = 0;
-            break;
+            break;//a
         }
 
         if ((commit.header.startsWith("feat!") || commit.header.startsWith("fix!")) && releaseType > 1) {
