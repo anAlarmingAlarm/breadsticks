@@ -1,0 +1,52 @@
+{
+  "horse.whistle": {
+    "sounds": [
+      "wynntils:horse-whistle",
+      "wynntils:horse-whistle-2"
+    ]
+  },
+  "misc.mythic-found-classic": {
+    "sounds": [
+      "wynntils:mythic-found-classic"
+    ]
+  },
+  "misc.mythic-found-modern": {
+    "sounds": [
+      "wynntils:mythic-found-modern"
+    ]
+  },
+  "ui.book.open": {
+    "sounds": [
+      "wynntils:book-open"
+    ]
+  },
+  "ui.book.turn-page": {
+    "sounds": [
+      "wynntils:book-turn-page",
+      "wynntils:book-turn-page-2",
+      "wynntils:book-turn-page-3"
+    ]
+  },
+  "ui.tracker.update": {
+    "sounds": [
+      "wynntils:tracker-update"
+    ]
+  },
+  "war.horn": {
+    "sounds": [
+      "wynntils:war-horn"
+    ]
+  },
+  "wybel.purr": {
+    "sounds": [
+      "wynntils:wybel-purr",
+      "wynntils:wybel-purr-2"
+    ]
+  },
+  "wybel.squeak": {
+    "sounds": [
+      "wynntils:wybel-squeak",
+      "wynntils:wybel-squeak-2"
+    ]
+  }
+}

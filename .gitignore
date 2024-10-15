@@ -1,0 +1,34 @@
+# Build directories by various build systems
+build/
+out/
+output/
+bin/
+libs/
+classes/
+.gradle/
+.architectury-transformer/
+
+# Data generated while running Minecraft or tests
+run/
+.devauth/microsoft_accounts.json
+*/logs/*
+
+# IDEs
+.idea/
+.classpath
+.project
+.metadata
+.vscode
+.settings
+*.ipr
+*.iws
+*.iml
+*.launch
+
+# macOS junk
+.DS_Store
+
+# Files generated during github actions
+node_modules
+package-lock.json
+package.json
